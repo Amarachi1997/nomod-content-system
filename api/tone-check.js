@@ -4,10 +4,17 @@ const path = require('path');
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const claudeMd = fs.readFileSync(path.join(__dirname, '..', 'CLAUDE.md'), 'utf8');
-const skillMd = fs.readFileSync(path.join(__dirname, '..', 'skills', 'tone-checker.md'), 'utf8');
+// Lazy-loaded once per Lambda instance — keeps cold-start errors visible
+let SYSTEM_PROMPT = null;
 
-const SYSTEM_PROMPT = `${claudeMd}
+function buildSystemPrompt() {
+  if (SYSTEM_PROMPT) return SYSTEM_PROMPT;
+
+  const root = path.join(__dirname, '..');
+  const claudeMd = fs.readFileSync(path.join(root, 'CLAUDE.md'), 'utf8');
+  const skillMd = fs.readFileSync(path.join(root, 'skills', 'tone-checker.md'), 'utf8');
+
+  SYSTEM_PROMPT = `${claudeMd}
 
 ---
 
@@ -33,15 +40,30 @@ You are a tone checker for Nomod. When given a piece of copy, you review it stri
 
 If there are no issues, return an empty array for "issues" and set verdict to "Pass".`;
 
+  return SYSTEM_PROMPT;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { copy } = req.body;
+  const { copy } = req.body || {};
 
   if (!copy || typeof copy !== 'string' || copy.trim().length === 0) {
     return res.status(400).json({ error: 'copy is required' });
+  }
+
+  let systemPrompt;
+  try {
+    systemPrompt = buildSystemPrompt();
+  } catch (err) {
+    console.error('File load error:', err);
+    return res.status(500).json({
+      error: 'Failed to load content guidelines',
+      detail: err.message,
+      path: err.path || null
+    });
   }
 
   try {
@@ -52,7 +74,7 @@ module.exports = async function handler(req, res) {
       system: [
         {
           type: 'text',
-          text: SYSTEM_PROMPT,
+          text: systemPrompt,
           cache_control: { type: 'ephemeral' }
         }
       ],
@@ -75,13 +97,22 @@ module.exports = async function handler(req, res) {
     try {
       const raw = textBlock.text.trim().replace(/^```json\s*/i, '').replace(/```\s*$/, '');
       parsed = JSON.parse(raw);
-    } catch {
-      return res.status(500).json({ error: 'Claude returned invalid JSON', raw: textBlock.text });
+    } catch (parseErr) {
+      console.error('JSON parse error:', parseErr);
+      return res.status(500).json({
+        error: 'Claude returned invalid JSON',
+        detail: parseErr.message,
+        raw: textBlock.text
+      });
     }
 
     res.status(200).json(parsed);
   } catch (err) {
-    console.error('Tone check error:', err);
-    res.status(500).json({ error: err.message || 'Internal server error' });
+    console.error('Claude API error:', err);
+    res.status(500).json({
+      error: err.message || 'Internal server error',
+      type: err.constructor?.name || null,
+      status: err.status || null
+    });
   }
 };
