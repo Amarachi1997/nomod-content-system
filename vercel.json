@@ -1,12 +1,26 @@
 {
   "version": 2,
-  "name": "nomod-content-system",
   "builds": [
     {
-      "src": "api/*.js",
+      "src": "api/tone-check.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["CLAUDE.md", "skills/tone-checker.md", "skills/microcopy-gen.md"]
+        "maxDuration": 60,
+        "includeFiles": [
+          "CLAUDE.md",
+          "skills/tone-checker.md"
+        ]
+      }
+    },
+    {
+      "src": "api/microcopy-gen.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 60,
+        "includeFiles": [
+          "CLAUDE.md",
+          "skills/microcopy-gen.md"
+        ]
       }
     },
     {
@@ -14,15 +28,14 @@
       "use": "@vercel/static"
     }
   ],
-  "functions": {
-    "api/*.js": {
-      "maxDuration": 60
-    }
-  },
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "src": "/api/tone-check",
+      "dest": "/api/tone-check.js"
+    },
+    {
+      "src": "/api/microcopy-gen",
+      "dest": "/api/microcopy-gen.js"
     },
     {
       "src": "/(.*)",
