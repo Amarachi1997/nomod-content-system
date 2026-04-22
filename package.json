@@ -1,0 +1,12 @@
+{
+  "name": "nomod-content-system",
+  "version": "1.0.0",
+  "description": "Nomod brand voice tools — tone checker and microcopy generator",
+  "private": true,
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}
