@@ -44,14 +44,31 @@ If there are no issues, return an empty array for "issues" and set verdict to "P
 }
 
 module.exports = async function handler(req, res) {
+  // DEBUG: expose runtime environment so we can see exactly what's failing
+  const debugEnv = {
+    __dirname,
+    cwd: process.cwd(),
+    nodeVersion: process.version,
+    hasApiKey: !!process.env.ANTHROPIC_API_KEY,
+    filesAtRoot: (() => {
+      try { return fs.readdirSync(path.join(__dirname, '..')); } catch (e) { return e.message; }
+    })(),
+    filesAtDirname: (() => {
+      try { return fs.readdirSync(__dirname); } catch (e) { return e.message; }
+    })(),
+    skillsDir: (() => {
+      try { return fs.readdirSync(path.join(__dirname, '..', 'skills')); } catch (e) { return e.message; }
+    })(),
+  };
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed', debug: debugEnv });
   }
 
   const { copy } = req.body || {};
 
   if (!copy || typeof copy !== 'string' || copy.trim().length === 0) {
-    return res.status(400).json({ error: 'copy is required' });
+    return res.status(400).json({ error: 'copy is required', debug: debugEnv });
   }
 
   let systemPrompt;
@@ -62,7 +79,9 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({
       error: 'Failed to load content guidelines',
       detail: err.message,
-      path: err.path || null
+      stack: err.stack,
+      path: err.path || null,
+      debug: debugEnv
     });
   }
 
@@ -90,7 +109,7 @@ module.exports = async function handler(req, res) {
 
     const textBlock = message.content.find(block => block.type === 'text');
     if (!textBlock) {
-      return res.status(500).json({ error: 'No text response from Claude' });
+      return res.status(500).json({ error: 'No text response from Claude', debug: debugEnv });
     }
 
     let parsed;
@@ -102,7 +121,9 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({
         error: 'Claude returned invalid JSON',
         detail: parseErr.message,
-        raw: textBlock.text
+        stack: parseErr.stack,
+        raw: textBlock.text,
+        debug: debugEnv
       });
     }
 
@@ -111,8 +132,12 @@ module.exports = async function handler(req, res) {
     console.error('Claude API error:', err);
     res.status(500).json({
       error: err.message || 'Internal server error',
+      detail: err.message,
+      stack: err.stack,
       type: err.constructor?.name || null,
-      status: err.status || null
+      status: err.status || null,
+      headers: err.headers || null,
+      debug: debugEnv
     });
   }
 };
