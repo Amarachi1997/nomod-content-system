@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nomod Content System</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --black: #000000;
+      --white: #ffffff;
+      --grey-100: #f5f5f5;
+      --grey-200: #e8e8e8;
+      --grey-400: #999999;
+      --grey-600: #555555;
+      --radius: 8px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--white);
+      color: var(--black);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--grey-200);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+
+    header .version {
+      font-size: 12px;
+      color: var(--grey-400);
+      font-weight: 400;
+    }
+
+    /* ── Layout ── */
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* ── Tab switcher ── */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 36px;
+      border-bottom: 1px solid var(--grey-200);
+      padding-bottom: 0;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--grey-400);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+      font-family: var(--font);
+    }
+
+    .tab-btn:hover {
+      color: var(--black);
+    }
+
+    .tab-btn.active {
+      color: var(--black);
+      border-bottom-color: var(--black);
+    }
+
+    /* ── Panel ── */
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* ── Section label ── */
+    .panel-title {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.4px;
+      margin-bottom: 6px;
+    }
+
+    .panel-desc {
+      font-size: 14px;
+      color: var(--grey-600);
+      margin-bottom: 28px;
+    }
+
+    /* ── Form elements ── */
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--black);
+    }
+
+    textarea,
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--grey-200);
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 14px;
+      color: var(--black);
+      background: var(--white);
+      resize: vertical;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+
+    textarea:focus,
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--black);
+    }
+
+    textarea::placeholder,
+    input[type="text"]::placeholder {
+      color: var(--grey-400);
+    }
+
+    textarea {
+      min-height: 160px;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .field-hint {
+      font-size: 12px;
+      color: var(--grey-400);
+      margin-top: 5px;
+    }
+
+    /* ── Primary button ── */
+    .btn-primary {
+      background: var(--black);
+      color: var(--white);
+      border: none;
+      padding: 12px 22px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: opacity 0.15s;
+      margin-top: 8px;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.8;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ── Output area ── */
+    .output {
+      margin-top: 36px;
+      display: none;
+    }
+
+    .output.visible {
+      display: block;
+    }
+
+    .output-divider {
+      border: none;
+      border-top: 1px solid var(--grey-200);
+      margin-bottom: 28px;
+    }
+
+    .output-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--grey-400);
+      margin-bottom: 16px;
+    }
+
+    .output-content {
+      font-size: 14px;
+      line-height: 1.75;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* verdict badges */
+    .verdict {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .verdict-fail { background: #fde8e8; color: #c0392b; }
+    .verdict-pass { background: #e8f8ee; color: #1e8449; }
+    .verdict-notes { background: #fff4e0; color: #b7770d; }
+
+    /* report table */
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 16px 0;
+    }
+
+    .report-table th {
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--grey-200);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--grey-600);
+    }
+
+    .report-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--grey-100);
+      vertical-align: top;
+    }
+
+    .report-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* report sections */
+    .report-section {
+      margin-bottom: 24px;
+    }
+
+    .report-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--black);
+    }
+
+    .report-section p,
+    .report-section li {
+      font-size: 14px;
+      color: var(--grey-600);
+    }
+
+    .report-section ul {
+      padding-left: 18px;
+    }
+
+    .report-section li {
+      margin-bottom: 4px;
+    }
+
+    .revised-block {
+      background: var(--grey-100);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--black);
+    }
+
+    /* microcopy output blocks */
+    .copy-block {
+      margin-bottom: 20px;
+    }
+
+    .copy-block-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--grey-400);
+      margin-bottom: 6px;
+    }
+
+    .copy-block-text {
+      font-size: 15px;
+      color: var(--black);
+      padding: 12px 14px;
+      background: var(--grey-100);
+      border-radius: var(--radius);
+    }
+
+    .copy-block-text.cta {
+      font-weight: 600;
+    }
+
+    .rules-list,
+    .notes-list {
+      font-size: 13px;
+      color: var(--grey-600);
+      padding-left: 18px;
+    }
+
+    .rules-list li,
+    .notes-list li {
+      margin-bottom: 4px;
+    }
+
+    /* loading state */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      header { padding: 16px; }
+      main { padding: 28px 16px 60px; }
+      .panel-title { font-size: 20px; }
+      .report-table { font-size: 12px; }
+      .report-table th,
+      .report-table td { padding: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Nomod Content System</h1>
+    <span class="version">v1.1</span>
+  </header>
+
+  <main>
+
+    <!-- Tab switcher -->
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-target="tone">Tone checker</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-target="micro">Microcopy generator</button>
+    </div>
+
+    <!-- ── Tone checker panel ── -->
+    <div class="panel active" id="panel-tone">
+      <h2 class="panel-title">Tone checker</h2>
+      <p class="panel-desc">Paste copy below to check it against Nomod's content rules in CLAUDE.md.</p>
+
+      <div class="field">
+        <label for="tone-input">Copy to review</label>
+        <textarea id="tone-input" placeholder="Paste the copy you want to check here…"></textarea>
+      </div>
+
+      <button class="btn-primary" id="tone-submit">Check tone</button>
+
+      <div class="output" id="tone-output">
+        <hr class="output-divider" />
+        <div class="output-label">Tone check report</div>
+        <div class="output-content" id="tone-result"></div>
+      </div>
+    </div>
+
+    <!-- ── Microcopy generator panel ── -->
+    <div class="panel" id="panel-micro">
+      <h2 class="panel-title">Microcopy generator</h2>
+      <p class="panel-desc">Describe what you need and get ready-to-use copy based on Nomod's content standards.</p>
+
+      <div class="field">
+        <label for="micro-surface">Surface</label>
+        <input type="text" id="micro-surface" placeholder="e.g. modal, button, error state, empty state" />
+      </div>
+
+      <div class="field">
+        <label for="micro-flow">Screen or flow</label>
+        <input type="text" id="micro-flow" placeholder="e.g. payout setup, document verification, cancellation" />
+      </div>
+
+      <div class="field">
+        <label for="micro-moment">Moment</label>
+        <input type="text" id="micro-moment" placeholder="e.g. user's document failed verification" />
+      </div>
+
+      <div class="field">
+        <label for="micro-tone">Tone note <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+        <input type="text" id="micro-tone" placeholder="e.g. high stakes, routine, celebratory" />
+        <p class="field-hint">Leave blank if no specific tone guidance is needed.</p>
+      </div>
+
+      <button class="btn-primary" id="micro-submit">Generate copy</button>
+
+      <div class="output" id="micro-output">
+        <hr class="output-divider" />
+        <div class="output-label">Microcopy output</div>
+        <div class="output-content" id="micro-result"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // ── Tab switching ──────────────────────────────────────
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+        document.getElementById('panel-' + btn.dataset.target).classList.add('active');
+      });
+    });
+
+    // ── Helpers ───────────────────────────────────────────
+    function setLoading(btn, loading) {
+      if (loading) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Checking…';
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.label;
+      }
+    }
+
+    // Store original labels
+    document.getElementById('tone-submit').dataset.label = 'Check tone';
+    document.getElementById('micro-submit').dataset.label = 'Generate copy';
+
+    // ── Tone checker ──────────────────────────────────────
+    document.getElementById('tone-submit').addEventListener('click', async () => {
+      const copy = document.getElementById('tone-input').value.trim();
+      if (!copy) return;
+
+      const btn = document.getElementById('tone-submit');
+      btn.innerHTML = '<span class="spinner"></span>Checking…';
+      btn.disabled = true;
+
+      const output = document.getElementById('tone-output');
+      const result = document.getElementById('tone-result');
+      output.classList.remove('visible');
+
+      try {
+        const report = await runToneCheck(copy);
+        result.innerHTML = report;
+        output.classList.add('visible');
+      } catch (err) {
+        result.textContent = 'Something went wrong. Please try again.';
+        output.classList.add('visible');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Check tone';
+      }
+    });
+
+    // ── Microcopy generator ───────────────────────────────
+    document.getElementById('micro-submit').addEventListener('click', async () => {
+      const surface = document.getElementById('micro-surface').value.trim();
+      const flow    = document.getElementById('micro-flow').value.trim();
+      const moment  = document.getElementById('micro-moment').value.trim();
+      const tone    = document.getElementById('micro-tone').value.trim();
+
+      if (!surface || !flow || !moment) {
+        alert('Please fill in Surface, Screen or flow, and Moment before generating.');
+        return;
+      }
+
+      const btn = document.getElementById('micro-submit');
+      btn.innerHTML = '<span class="spinner"></span>Generating…';
+      btn.disabled = true;
+
+      const output = document.getElementById('micro-output');
+      const result = document.getElementById('micro-result');
+      output.classList.remove('visible');
+
+      try {
+        const copy = await runMicroGen({ surface, flow, moment, tone });
+        result.innerHTML = copy;
+        output.classList.add('visible');
+      } catch (err) {
+        result.textContent = 'Something went wrong. Please try again.';
+        output.classList.add('visible');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Generate copy';
+      }
+    });
+
+    // ── API calls ─────────────────────────────────────────
+    // These call /api/tone-check and /api/microcopy-gen
+    // Connect these endpoints to your backend or Claude API integration.
+
+    async function runToneCheck(copy) {
+      const res = await fetch('/api/tone-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ copy })
+      });
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+      return formatToneReport(data);
+    }
+
+    async function runMicroGen({ surface, flow, moment, tone }) {
+      const res = await fetch('/api/microcopy-gen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ surface, flow, moment, tone })
+      });
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+      return formatMicroOutput(data);
+    }
+
+    // ── Formatters ────────────────────────────────────────
+    // These expect a structured JSON response from the API.
+    // Adapt to match your actual API response shape.
+
+    function formatToneReport(data) {
+      const verdictClass = {
+        'Pass': 'verdict-pass',
+        'Fail': 'verdict-fail',
+        'Pass with notes': 'verdict-notes'
+      }[data.verdict] || 'verdict-notes';
+
+      let issueRows = '';
+      if (data.issues && data.issues.length) {
+        issueRows = data.issues.map((issue, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${escHtml(issue.rule)}</td>
+            <td><code>${escHtml(issue.copy)}</code></td>
+            <td>${escHtml(issue.fix)}</td>
+          </tr>`).join('');
+      } else {
+        issueRows = '<tr><td colspan="4" style="color:var(--grey-400);padding:12px">No issues found.</td></tr>';
+      }
+
+      const worksList = (data.whatWorks || []).map(w => `<li>${escHtml(w)}</li>`).join('');
+
+      return `
+        <div class="report-section">
+          <span class="report-section-title">Overall verdict</span>
+          <span class="verdict ${verdictClass}">${escHtml(data.verdict)}</span>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Copy reviewed</div>
+          <p style="color:var(--grey-600);font-size:14px">${escHtml(data.copyReviewed)}</p>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Issues found</div>
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Rule broken</th>
+                <th>Copy flagged</th>
+                <th>Suggested fix</th>
+              </tr>
+            </thead>
+            <tbody>${issueRows}</tbody>
+          </table>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">What works well</div>
+          <ul class="rules-list">${worksList || '<li style="color:var(--grey-400)">Nothing noted.</li>'}</ul>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Revised version</div>
+          <div class="revised-block">${escHtml(data.revised)}</div>
+        </div>
+      `;
+    }
+
+    function formatMicroOutput(data) {
+      const components = (data.components || []).map(c => `
+        <div class="copy-block">
+          <div class="copy-block-label">${escHtml(c.label)}</div>
+          <div class="copy-block-text ${c.isCta ? 'cta' : ''}">${escHtml(c.text)}</div>
+        </div>`).join('');
+
+      const rulesList = (data.rulesApplied || []).map(r => `<li>${escHtml(r)}</li>`).join('');
+      const notesList = (data.notes || []).map(n => `<li>${escHtml(n)}</li>`).join('');
+
+      return `
+        <div style="margin-bottom:8px;font-size:13px;color:var(--grey-600)">
+          <strong>Surface:</strong> ${escHtml(data.surface)} &nbsp;·&nbsp;
+          <strong>Flow:</strong> ${escHtml(data.flow)} &nbsp;·&nbsp;
+          <strong>Moment:</strong> ${escHtml(data.moment)}
+        </div>
+
+        <hr style="border:none;border-top:1px solid var(--grey-200);margin:16px 0 20px" />
+
+        ${components}
+
+        <hr style="border:none;border-top:1px solid var(--grey-200);margin:20px 0 16px" />
+
+        <div class="report-section">
+          <div class="report-section-title">Rules applied</div>
+          <ul class="rules-list">${rulesList || '<li style="color:var(--grey-400)">None listed.</li>'}</ul>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Notes</div>
+          <ul class="notes-list">${notesList || '<li style="color:var(--grey-400)">None.</li>'}</ul>
+        </div>
+      `;
+    }
+
+    function escHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+
+</body>
+</html>
