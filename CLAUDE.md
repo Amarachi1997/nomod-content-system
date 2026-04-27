@@ -1,5 +1,5 @@
 # Nomod Content System — CLAUDE.md
-Version 1.1 | April 2026 | Owner: Amarachi Chiaha
+Version 1.2 | Last updated: 26th April 2026 | Owner: Amarachi Chiaha
 
 This file defines Nomod's content standards. It applies to every surface: app UI, documentation, emails, notifications, and marketing. Use it whenever writing, reviewing, or editing Nomod content.
 
@@ -41,7 +41,7 @@ Tone shifts by situation. Voice stays constant.
 |---|---|
 | Onboarding | Reassuring, step-by-step |
 | Daily use | Invisible, efficient |
-| Errors and issues | Calm, solution-first |
+| Errors and issues | Calm, empathetic, solution-first — empathy level varies by component: full empathy in tooltips and emails; functional and clear in toasts; solution-focused in inline validations |
 | Support prompts | Friendly, inviting |
 | Delays and downtime | Transparent, reassuring |
 | Payments and payouts | Confident, factual |
@@ -50,6 +50,14 @@ Tone shifts by situation. Voice stays constant.
 | Pricing and fees | Direct, neutral |
 | FAQs and help docs | Supportive, non-judgmental |
 | Marketing | Aspirational but credible |
+| Verification steps | Patient, guiding |
+| New features | Simple, benefit-led |
+| Status updates | Clear, time-bound |
+| Onboarding success | Affirming, confidence-building |
+| Feature education | Practical, outcome-led |
+| Pricing upgrades | Supportive, non-pushy |
+| Legal or policy content | Plain, neutral |
+| Feature overview | Confident, clear |
 
 ### Internal tone test
 - Would a first-time business owner understand this on the first read?
@@ -66,6 +74,11 @@ Tone shifts by situation. Voice stays constant.
 - Reduce friction everywhere. Guide without talking down. Walk users through things step by step.
 - Never over-promise. Only state an outcome if Nomod can guarantee it completely, every time. If the result depends on a review or approval, describe the next step, not the final result.
 - No apology openers. State what happened calmly and move immediately to what the user can do next. "Oops!" is never permitted in failure states.
+- Never make the user feel stupid, at fault, or alone. This applies to every surface, every error, and every moment where something has gone wrong.
+- Front-load the action. Lead with what the user needs to do before explaining why. "Add your bank account to get paid" not "To get paid, add your bank account."
+- If a user might feel surprised later, explain it now. Proactive disclosure builds more trust than any reassurance copy written after the fact. Surprise costs are the fastest way to lose trust.
+- The user is the hero, not Nomod. Write success states, feature announcements, and marketing copy from the user's perspective. "You are now accepting payments" not "Nomod now processes your payments."
+- Speed should feel reassuring, not rushed. Momentum and calm can coexist. Clear next steps. No pressure tactics.
 
 ---
 
@@ -80,18 +93,41 @@ Structure: What happened → Mental relaxer → What to do next
 - Reversibility statement: "Don't worry, you can add it back anytime."
 - Forward-looking reassurance: "We'll review it again as soon as you upload a valid copy."
 
-### Where to use them
-- Confirmation pop-ups
-- Cancellation flows
-- Error states requiring user action
-- Customer support delays
-- Pending actions
+### When to use mental relaxers
 
-### Where never to use them
-- Payout failures
-- Account suspensions
-- Compliance issues
-- System outages affecting funds
+Use when:
+- The user needs reassurance
+- They cannot take any action to change the situation
+- They need to be patient while something is processed or reviewed
+
+Do not use when:
+- A failure has occurred and the user needs to take immediate action
+- In those moments, lead with the action first, not a reassurance
+
+Example of the distinction:
+
+Mental relaxer appropriate:
+"We are reviewing your documents. This usually takes one to two business days. You will hear from us as soon as it is done."
+
+Action-first appropriate:
+"We could not verify your Emirates ID. Upload a clear, valid copy to continue."
+
+### Approved mental relaxer patterns
+
+Reassurance:
+- "This won't affect your payouts."
+- "No action needed right now."
+- "Your account is still secure."
+
+Progress confirmation:
+- "We're reviewing this now."
+- "This usually takes up to 48 hours."
+- "You'll hear from us as soon as it's done."
+
+Control and escape:
+- "You can come back to this later."
+- "You can update this anytime."
+- "Chat with us on WhatsApp if you'd like help."
 
 ### Checklist before publishing
 - Is the statement actually true?
@@ -236,6 +272,8 @@ Single exclamation opener permitted. Celebrate the action, not Nomod.
 ### Failure states
 No blame. No "Oops!". State what happened. Point to next step.
 
+Support channel: When a secondary CTA routes to support, name the channel explicitly. Use "Chat with us on WhatsApp" not "Contact support."
+
 ### Confirmation pop-ups
 Structure: Question → Supporting text (include mental relaxer if destructive) → CTAs
 - Remove this business? Don't worry, you can add it back anytime. Yes / No
@@ -290,6 +328,8 @@ Structure: No [Item] yet → Supporting text → CTA
 ---
 
 ## 12. Terminology
+
+Consistency is trust. Use the same terms everywhere. "Payout" not "transfer" sometimes and "payout" other times. Same timeframes across app, email, and docs. Same tone in good and bad moments. Inconsistency signals unreliability even when the product is not at fault.
 
 | Term | Definition |
 |---|---|
@@ -352,3 +392,83 @@ For plurals, use conditional brackets:
 - "Don't worry" without following it with a specific reason
 - "Everything is sorted" or vague resolution language
 - Anything that promises an outcome Nomod cannot guarantee every time
+
+---
+
+## 16. Localisation: UAE vs KSA
+
+These rules apply to all copy. Every skill reads this section before generating or reviewing any output.
+
+### Payout days
+- UAE: Monday to Friday
+- KSA: Sunday to Thursday
+
+Never reference payout days without specifying the market.
+
+### Currency
+- UAE: AED
+- KSA: SAR
+
+Use [CURRENCY] as a variable in copy that serves both markets.
+
+### Payment methods
+- UAE: Apple Pay, Google Pay, Visa, Mastercard, AMEX
+- KSA: Mada is the dominant local debit network and must always be included in KSA copy. STC Pay is mainstream. Reference Tamara before Tabby in KSA copy.
+
+Never omit Mada from KSA-facing payment method copy.
+
+### Identity documents
+- UAE: Emirates ID
+- KSA: National ID (Iqama for residents, Hawiyya for citizens)
+
+Never reference "Emirates ID" in KSA copy.
+
+### Business registration
+- UAE: Trade Licence
+- KSA: Commercial Registration (CR)
+
+Never use "Trade Licence" in KSA copy.
+
+### Regulatory bodies
+- UAE: Central Bank of the UAE (CBUAE)
+- KSA: Saudi Central Bank (SAMA)
+
+Never reference the wrong regulatory body for the market.
+
+### Working week
+- UAE: Weekend is Saturday and Sunday
+- KSA: Weekend is Friday and Saturday
+
+Never use "over the weekend" without specifying the market.
+
+### Trust tone
+- UAE: Startup and challenger-brand language is acceptable.
+- KSA: Trust is earned through alignment with established systems. Avoid disruption-led language. Include regulatory reassurance in onboarding and verification copy.
+
+### Urgency tone
+- UAE: Direct urgency is acceptable in time-sensitive copy.
+- KSA: Pair urgency language with a reassurance element in financial and verification surfaces.
+
+### Cultural references
+- UAE: UAE National Day, Dubai Shopping Festival, multicultural celebrations
+- KSA: Saudi National Day, Founding Day, Ramadan
+
+Never use UAE-specific references in KSA copy or vice versa. Ramadan copy must be inclusive and not assume all users participate equally.
+
+### BNPL
+- UAE: Tabby and Tamara. Either can be referenced.
+- KSA: Reference Tamara first. Tabby is also present.
+
+### Terminology to avoid in both markets
+- "Interest" in any financial context. Use "fee" or "charge".
+- Any idiom that does not survive Arabic translation.
+- Any culturally inappropriate metaphor or reference.
+
+### Copy that must always be market-specific
+- Payout day references
+- Currency amounts
+- Identity document names
+- Business registration terms
+- Regulatory body names
+- Weekend references
+- Payment method lists
