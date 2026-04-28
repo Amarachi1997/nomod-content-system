@@ -374,6 +374,7 @@
     <div class="tabs" role="tablist">
       <button class="tab-btn active" role="tab" aria-selected="true" data-target="tone">Tone checker</button>
       <button class="tab-btn" role="tab" aria-selected="false" data-target="micro">Microcopy generator</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-target="review">Copy reviewer</button>
     </div>
 
     <!-- ── Tone checker panel ── -->
@@ -430,6 +431,47 @@
       </div>
     </div>
 
+    <!-- ── Copy reviewer panel ── -->
+    <div class="panel" id="panel-review">
+      <h2 class="panel-title">Copy reviewer</h2>
+      <p class="panel-desc">Paste copy and add context to run a full check against all 15 rules in CLAUDE.md.</p>
+
+      <div class="field">
+        <label for="review-copy">Copy to review</label>
+        <textarea id="review-copy" placeholder="Paste the copy you want to review here…"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="review-surface">Surface <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+        <input type="text" id="review-surface" placeholder="e.g. modal, notification, email, FAQ, Nomod Docs, button" />
+      </div>
+
+      <div class="field">
+        <label for="review-market">Market <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+        <input type="text" id="review-market" placeholder="UAE / KSA / Both" />
+        <p class="field-hint">Leave blank if the copy is not market-specific.</p>
+      </div>
+
+      <div class="field">
+        <label for="review-context">Context <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+        <input type="text" id="review-context" placeholder="e.g. document verification failed, user is setting up payouts" />
+      </div>
+
+      <div class="field">
+        <label for="review-outcome">Outcome controlled by Nomod <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+        <input type="text" id="review-outcome" placeholder="Yes / No / Partially" />
+        <p class="field-hint">Helps check whether the copy over-promises a result Nomod cannot guarantee.</p>
+      </div>
+
+      <button class="btn-primary" id="review-submit">Review copy</button>
+
+      <div class="output" id="review-output">
+        <hr class="output-divider" />
+        <div class="output-label">Copy review report</div>
+        <div class="output-content" id="review-result"></div>
+      </div>
+    </div>
+
   </main>
 
   <script>
@@ -461,6 +503,7 @@
     // Store original labels
     document.getElementById('tone-submit').dataset.label = 'Check tone';
     document.getElementById('micro-submit').dataset.label = 'Generate copy';
+    document.getElementById('review-submit').dataset.label = 'Review copy';
 
     // ── Tone checker ──────────────────────────────────────
     document.getElementById('tone-submit').addEventListener('click', async () => {
@@ -642,6 +685,148 @@
         <div class="report-section">
           <div class="report-section-title">Notes</div>
           <ul class="notes-list">${notesList || '<li style="color:var(--grey-400)">None.</li>'}</ul>
+        </div>
+      `;
+    }
+
+    // ── Copy reviewer ─────────────────────────────────────
+    document.getElementById('review-submit').addEventListener('click', async () => {
+      const copy    = document.getElementById('review-copy').value.trim();
+      if (!copy) return;
+
+      const surface         = document.getElementById('review-surface').value.trim();
+      const market          = document.getElementById('review-market').value.trim();
+      const context         = document.getElementById('review-context').value.trim();
+      const outcomeControlled = document.getElementById('review-outcome').value.trim();
+
+      const btn = document.getElementById('review-submit');
+      btn.innerHTML = '<span class="spinner"></span>Reviewing…';
+      btn.disabled = true;
+
+      const output = document.getElementById('review-output');
+      const result = document.getElementById('review-result');
+      output.classList.remove('visible');
+
+      try {
+        const report = await runCopyReview({ copy, surface, market, context, outcomeControlled });
+        result.innerHTML = report;
+        output.classList.add('visible');
+      } catch (err) {
+        result.textContent = 'Something went wrong. Please try again.';
+        output.classList.add('visible');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Review copy';
+      }
+    });
+
+    async function runCopyReview({ copy, surface, market, context, outcomeControlled }) {
+      const res = await fetch('/api/copy-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ copy, surface, market, context, outcomeControlled })
+      });
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+      return formatCopyReview(data);
+    }
+
+    function formatCopyReview(data) {
+      const verdictClass = {
+        'Pass': 'verdict-pass',
+        'Fail': 'verdict-fail',
+        'Pass with notes': 'verdict-notes'
+      }[data.verdict] || 'verdict-notes';
+
+      // Meta row
+      const meta = [
+        data.surface ? `<strong>Surface:</strong> ${escHtml(data.surface)}` : null,
+        data.market  ? `<strong>Market:</strong> ${escHtml(data.market)}` : null,
+        data.context ? `<strong>Context:</strong> ${escHtml(data.context)}` : null,
+      ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+
+      // Tone match
+      const toneRow = data.expectedTone ? `
+        <div class="report-section">
+          <div class="report-section-title">Expected tone</div>
+          <p>${escHtml(data.expectedTone)} &nbsp;
+            ${data.toneMatch
+              ? '<span class="verdict verdict-pass">Tone match</span>'
+              : `<span class="verdict verdict-fail">Tone mismatch</span>`}
+          </p>
+          ${!data.toneMatch && data.toneMismatch
+            ? `<p style="margin-top:6px;color:var(--grey-600);font-size:13px">${escHtml(data.toneMismatch)}</p>`
+            : ''}
+        </div>` : '';
+
+      // Issues table
+      let issueRows = '';
+      if (data.issues && data.issues.length) {
+        issueRows = data.issues.map((issue, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td><strong>${escHtml(issue.rule)}</strong><br><span style="color:var(--grey-600);font-size:12px">${escHtml(issue.description)}</span></td>
+            <td><code>${escHtml(issue.original)}</code></td>
+            <td>${escHtml(issue.fix)}</td>
+            <td style="color:var(--grey-600);font-size:12px">${escHtml(issue.why)}</td>
+          </tr>`).join('');
+      } else {
+        issueRows = '<tr><td colspan="5" style="color:var(--grey-400);padding:12px">No issues found.</td></tr>';
+      }
+
+      // UI recommendations
+      let uiSection = '';
+      if (data.uiRecommendations && data.uiRecommendations.length) {
+        const uiItems = data.uiRecommendations.map(r => `
+          <div style="margin-bottom:16px;padding:14px;background:var(--grey-100);border-radius:var(--radius)">
+            <p style="font-size:13px;font-weight:600;margin-bottom:4px">${escHtml(r.recommendation)}</p>
+            <p style="font-size:13px;color:var(--grey-600);margin-bottom:4px">${escHtml(r.problem)}</p>
+            <p style="font-size:12px;color:var(--grey-400)">${escHtml(r.reason)}</p>
+          </div>`).join('');
+
+        uiSection = `
+          <div class="report-section">
+            <div class="report-section-title">UI recommendations</div>
+            ${uiItems}
+          </div>`;
+      }
+
+      return `
+        <div class="report-section">
+          <span class="report-section-title">Overall verdict</span>
+          <span class="verdict ${verdictClass}">${escHtml(data.verdict)}</span>
+        </div>
+
+        ${meta ? `<div class="report-section"><p style="font-size:13px;color:var(--grey-600)">${meta}</p></div>` : ''}
+
+        ${toneRow}
+
+        <div class="report-section">
+          <div class="report-section-title">Issues found</div>
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Rule</th>
+                <th>Original</th>
+                <th>Fix</th>
+                <th>Why</th>
+              </tr>
+            </thead>
+            <tbody>${issueRows}</tbody>
+          </table>
+        </div>
+
+        ${uiSection}
+
+        <div class="report-section">
+          <div class="report-section-title">Clean version</div>
+          <div class="revised-block">${escHtml(data.cleanVersion)}</div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Summary</div>
+          <p style="font-size:14px;color:var(--grey-600)">${escHtml(data.summary)}</p>
         </div>
       `;
     }

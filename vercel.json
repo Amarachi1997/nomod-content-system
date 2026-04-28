@@ -1,44 +1,18 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/tone-check.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 300,
-        "includeFiles": [
-          "CLAUDE.md",
-          "skills/tone-checker.md"
-        ]
-      }
+  "functions": {
+    "api/tone-check.js": {
+      "maxDuration": 300,
+      "includeFiles": "CLAUDE.md|skills/tone-checker.md"
     },
-    {
-      "src": "api/microcopy-gen.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 300,
-        "includeFiles": [
-          "CLAUDE.md",
-          "skills/microcopy-gen.md"
-        ]
-      }
+    "api/microcopy-gen.js": {
+      "maxDuration": 300,
+      "includeFiles": "CLAUDE.md|skills/microcopy-gen.md"
     },
-    {
-      "src": "api/copy-review.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 300,
-        "includeFiles": [
-          "CLAUDE.md",
-          "skills/copy-reviewer.md"
-        ]
-      }
-    },
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
+    "api/copy-review.js": {
+      "maxDuration": 300,
+      "includeFiles": "CLAUDE.md|skills/copy-reviewer.md"
     }
-  ],
+  },
   "routes": [
     {
       "src": "/api/tone-check",
