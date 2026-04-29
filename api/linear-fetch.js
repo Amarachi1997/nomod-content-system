@@ -62,6 +62,8 @@ module.exports = async function handler(req, res) {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': apiKey
+        'x-apollo-operation-name': 'GetIssue',
+        'apollo-require-preflight': 'true',
       },
       body: JSON.stringify({ query, variables: { id } })
     });
