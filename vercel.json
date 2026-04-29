@@ -1,34 +1,8 @@
 {
   "functions": {
-    "api/tone-check.js": {
-      "maxDuration": 300,
-      "includeFiles": "CLAUDE.md|skills/tone-checker.md"
-    },
-    "api/microcopy-gen.js": {
-      "maxDuration": 300,
-      "includeFiles": "CLAUDE.md|skills/microcopy-gen.md"
-    },
-    "api/copy-review.js": {
-      "maxDuration": 300,
-      "includeFiles": "CLAUDE.md|skills/copy-reviewer.md"
-    }
-  },
-  "routes": [
-    {
-      "src": "/api/tone-check",
-      "dest": "/api/tone-check.js"
-    },
-    {
-      "src": "/api/microcopy-gen",
-      "dest": "/api/microcopy-gen.js"
-    },
-    {
-      "src": "/api/copy-review",
-      "dest": "/api/copy-review.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ]
+    "api/tone-check.js": { "maxDuration": 300 },
+    "api/microcopy-gen.js": { "maxDuration": 300 },
+    "api/copy-review.js": { "maxDuration": 300 },
+    "api/glossary-check.js": { "maxDuration": 300 }
+  }
 }

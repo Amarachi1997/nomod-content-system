@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nomod Content System</title>
-  <link rel="icon" href="/favicon.ico" />
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -376,6 +375,7 @@
       <button class="tab-btn active" role="tab" aria-selected="true" data-target="tone">Tone checker</button>
       <button class="tab-btn" role="tab" aria-selected="false" data-target="micro">Microcopy generator</button>
       <button class="tab-btn" role="tab" aria-selected="false" data-target="review">Copy reviewer</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-target="glossary">Glossary validator</button>
     </div>
 
     <!-- ── Tone checker panel ── -->
@@ -470,6 +470,36 @@
         <hr class="output-divider" />
         <div class="output-label">Copy review report</div>
         <div class="output-content" id="review-result"></div>
+      </div>
+    </div>
+
+    <!-- ── Glossary validator panel ── -->
+    <div class="panel" id="panel-glossary">
+      <h2 class="panel-title">Glossary validator</h2>
+      <p class="panel-desc">Paste any copy — from a Figma spec, Jira ticket, email, or product UI — to check it against Nomod's approved terminology. Works for the whole team.</p>
+
+      <div class="field">
+        <label for="glossary-copy">Copy to validate</label>
+        <textarea id="glossary-copy" placeholder="Paste copy here — UI strings, ticket descriptions, spec notes, email drafts…"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="glossary-surface">Surface or document type <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+        <input type="text" id="glossary-surface" placeholder="e.g. Figma spec, Jira ticket, modal, email, PRD" />
+      </div>
+
+      <div class="field">
+        <label for="glossary-market">Market <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+        <input type="text" id="glossary-market" placeholder="UAE / KSA / Both" />
+        <p class="field-hint">Required for localisation checks — e.g. partner ordering, identity document names, payout days.</p>
+      </div>
+
+      <button class="btn-primary" id="glossary-submit">Validate terms</button>
+
+      <div class="output" id="glossary-output">
+        <hr class="output-divider" />
+        <div class="output-label">Glossary validation report</div>
+        <div class="output-content" id="glossary-result"></div>
       </div>
     </div>
 
@@ -616,7 +646,7 @@
       }
 
       const worksList = data.whatWorks ? `<li>${escHtml(data.whatWorks)}</li>` : '';
-      
+
       return `
         <div class="report-section">
           <span class="report-section-title">Overall verdict</span>
@@ -664,6 +694,7 @@
 
       const rulesList = (data.rulesApplied || []).map(r => `<li>${escHtml(r)}</li>`).join('');
       const notesList = data.notes ? `<li>${escHtml(data.notes)}</li>` : '';
+
       return `
         <div style="margin-bottom:8px;font-size:13px;color:var(--grey-600)">
           <strong>Surface:</strong> ${escHtml(data.surface)} &nbsp;·&nbsp;
@@ -713,8 +744,8 @@
         output.classList.add('visible');
       } catch (err) {
         console.error('Copy review error:', err);
-        result.textContent = 'Something went wrong. Please try again.';
-                output.classList.add('visible');
+        result.textContent = 'Something went wrong: ' + err.message;
+        output.classList.add('visible');
       } finally {
         btn.disabled = false;
         btn.innerHTML = 'Review copy';
@@ -819,6 +850,153 @@
         </div>
 
         ${uiSection}
+
+        <div class="report-section">
+          <div class="report-section-title">Clean version</div>
+          <div class="revised-block">${escHtml(data.cleanVersion)}</div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Summary</div>
+          <p style="font-size:14px;color:var(--grey-600)">${escHtml(data.summary)}</p>
+        </div>
+      `;
+    }
+
+    document.getElementById('glossary-submit').dataset.label = 'Validate terms';
+
+    // ── Glossary validator ────────────────────────────────
+    document.getElementById('glossary-submit').addEventListener('click', async () => {
+      const copy    = document.getElementById('glossary-copy').value.trim();
+      if (!copy) return;
+
+      const surface = document.getElementById('glossary-surface').value.trim();
+      const market  = document.getElementById('glossary-market').value.trim();
+
+      const btn = document.getElementById('glossary-submit');
+      btn.innerHTML = '<span class="spinner"></span>Validating…';
+      btn.disabled = true;
+
+      const output = document.getElementById('glossary-output');
+      const result = document.getElementById('glossary-result');
+      output.classList.remove('visible');
+
+      try {
+        const report = await runGlossaryCheck({ copy, surface, market });
+        result.innerHTML = report;
+        output.classList.add('visible');
+      } catch (err) {
+        result.textContent = 'Something went wrong. Please try again.';
+        output.classList.add('visible');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Validate terms';
+      }
+    });
+
+    async function runGlossaryCheck({ copy, surface, market }) {
+      const res = await fetch('/api/glossary-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ copy, surface, market })
+      });
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+      return formatGlossaryReport(data);
+    }
+
+    function formatGlossaryReport(data) {
+      const verdictClass = {
+        'Pass': 'verdict-pass',
+        'Fail': 'verdict-fail',
+        'Pass with notes': 'verdict-notes'
+      }[data.verdict] || 'verdict-notes';
+
+      function issueTable(items, columns, rowFn) {
+        if (!items || !items.length) return '<p style="color:var(--grey-400);font-size:13px">None found.</p>';
+        const headers = columns.map(c => `<th>${c}</th>`).join('');
+        const rows = items.map(rowFn).join('');
+        return `<table class="report-table"><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+      }
+
+      const bannedTable = issueTable(
+        data.bannedTerms,
+        ['Found', 'Use instead', 'Context'],
+        r => `<tr><td><code>${escHtml(r.found)}</code></td><td><strong>${escHtml(r.approved)}</strong></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.context)}</td></tr>`
+      );
+
+      const capTable = issueTable(
+        data.capitalisationIssues,
+        ['Term', 'Issue', 'Fix'],
+        r => `<tr><td><code>${escHtml(r.term)}</code></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.issue)}</td><td>${escHtml(r.fix)}</td></tr>`
+      );
+
+      const brandTable = issueTable(
+        data.brandNameIssues,
+        ['Found', 'Correct spelling', 'Context'],
+        r => `<tr><td><code>${escHtml(r.found)}</code></td><td><strong>${escHtml(r.approved)}</strong></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.context)}</td></tr>`
+      );
+
+      const conflictTable = issueTable(
+        data.crossSurfaceConflicts,
+        ['Concept', 'Conflict', 'Approved term'],
+        r => `<tr><td><strong>${escHtml(r.concept)}</strong></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.conflict)}</td><td>${escHtml(r.approvedTerm)}</td></tr>`
+      );
+
+      const clarityTable = issueTable(
+        data.clarityFlags,
+        ['Term', 'Issue', 'Plain language alternative'],
+        r => `<tr><td><code>${escHtml(r.term)}</code></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.issue)}</td><td>${escHtml(r.suggestion)}</td></tr>`
+      );
+
+      const locTable = issueTable(
+        data.localisationConflicts,
+        ['Rule', 'Found', 'Fix'],
+        r => `<tr><td style="color:var(--grey-600);font-size:12px">${escHtml(r.rule)}</td><td><code>${escHtml(r.found)}</code></td><td>${escHtml(r.fix)}</td></tr>`
+      );
+
+      const meta = [
+        data.surface ? `<strong>Surface:</strong> ${escHtml(data.surface)}` : null,
+        data.market  ? `<strong>Market:</strong> ${escHtml(data.market)}` : null,
+      ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+
+      return `
+        <div class="report-section">
+          <span class="report-section-title">Overall verdict</span>
+          <span class="verdict ${verdictClass}">${escHtml(data.verdict)}</span>
+        </div>
+
+        ${meta ? `<div class="report-section"><p style="font-size:13px;color:var(--grey-600)">${meta}</p></div>` : ''}
+
+        <div class="report-section">
+          <div class="report-section-title">Banned terms</div>
+          ${bannedTable}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Capitalisation issues</div>
+          ${capTable}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Brand name issues</div>
+          ${brandTable}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Cross-surface conflicts</div>
+          ${conflictTable}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Clarity flags</div>
+          ${clarityTable}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Localisation conflicts</div>
+          ${locTable}
+        </div>
 
         <div class="report-section">
           <div class="report-section-title">Clean version</div>
