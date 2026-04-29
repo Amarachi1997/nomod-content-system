@@ -37,20 +37,22 @@ module.exports = async function handler(req, res) {
     id = id.toUpperCase();
   }
 
-  // Use issueByIdentifier for human-readable IDs like NOD-123
+  // Use issues query with identifier filter — Linear's issue() only accepts UUIDs
   const query = `
     query GetIssue($id: String!) {
-      issueByIdentifier(id: $id) {
-        identifier
-        title
-        description
-        state { name }
-        assignee { name }
-        labels { nodes { name } }
-        parent {
+      issues(filter: { identifier: { eq: $id } }) {
+        nodes {
           identifier
           title
           description
+          state { name }
+          assignee { name }
+          labels { nodes { name } }
+          parent {
+            identifier
+            title
+            description
+          }
         }
       }
     }
@@ -61,9 +63,9 @@ module.exports = async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': apiKey
+        'Authorization': apiKey,
         'x-apollo-operation-name': 'GetIssue',
-        'apollo-require-preflight': 'true',
+        'apollo-require-preflight': 'true'
       },
       body: JSON.stringify({ query, variables: { id } })
     });
@@ -82,7 +84,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const issue = data?.data?.issueByIdentifier;
+    const issue = data?.data?.issues?.nodes?.[0];
     if (!issue) {
       return res.status(404).json({ error: 'Ticket not found' });
     }
