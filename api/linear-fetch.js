@@ -14,12 +14,33 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'LINEAR_API_KEY is not configured' });
   }
 
-  // Normalise ticket ID — strip prefix if user pastes full URL
-  const id = ticketId.trim().toUpperCase().replace(/^.*\//, '');
+  // Extract identifier from a Linear URL or plain ticket ID
+  // Linear URLs look like: https://linear.app/nomod/issue/NOD-123/ticket-title
+  let id = ticketId.trim();
+  if (id.includes('linear.app')) {
+    // Extract the segment after /issue/
+    const match = id.match(/\/issue\/([A-Z]+-\d+)/i);
+    if (match) {
+      id = match[1].toUpperCase();
+    } else {
+      return res.status(400).json({ error: 'Could not extract ticket ID from the Linear URL. Paste the URL in the format: https://linear.app/workspace/issue/ID-123/title' });
+    }
+  } else if (id.includes('/')) {
+    // Some other URL format — try extracting a ticket-like segment
+    const match = id.match(/([A-Z]+-\d+)/i);
+    if (match) {
+      id = match[1].toUpperCase();
+    } else {
+      id = id.split('/').filter(Boolean).pop().toUpperCase();
+    }
+  } else {
+    id = id.toUpperCase();
+  }
 
+  // Use issueByIdentifier for human-readable IDs like NOD-123
   const query = `
     query GetIssue($id: String!) {
-      issue(id: $id) {
+      issueByIdentifier(id: $id) {
         identifier
         title
         description
@@ -52,13 +73,14 @@ module.exports = async function handler(req, res) {
     const data = await response.json();
 
     if (data.errors) {
+      console.error('Linear GraphQL errors:', JSON.stringify(data.errors));
       return res.status(404).json({
         error: 'Ticket not found or not accessible',
         detail: data.errors[0]?.message || 'Unknown error'
       });
     }
 
-    const issue = data?.data?.issue;
+    const issue = data?.data?.issueByIdentifier;
     if (!issue) {
       return res.status(404).json({ error: 'Ticket not found' });
     }
