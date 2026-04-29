@@ -37,10 +37,10 @@ module.exports = async function handler(req, res) {
     id = id.toUpperCase();
   }
 
-  // Use issueSearch — searches by the full identifier string like ENG-9245
+  // Use searchIssues — the current non-deprecated search endpoint
   const query = `
-    query GetIssue($id: String!) {
-      issueSearch(query: $id, first: 1) {
+    query GetIssue($term: String!) {
+      searchIssues(term: $term, first: 1) {
         nodes {
           identifier
           title
@@ -67,7 +67,7 @@ module.exports = async function handler(req, res) {
         'x-apollo-operation-name': 'GetIssue',
         'apollo-require-preflight': 'true'
       },
-      body: JSON.stringify({ query, variables: { id } })
+      body: JSON.stringify({ query, variables: { term: id } })
     });
 
     if (!response.ok) {
@@ -85,7 +85,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const issue = data?.data?.issueSearch?.nodes?.[0];
+    const issue = data?.data?.searchIssues?.nodes?.[0];
     if (!issue) {
       return res.status(404).json({ error: 'Ticket not found' });
     }
