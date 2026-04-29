@@ -614,8 +614,8 @@
         issueRows = '<tr><td colspan="4" style="color:var(--grey-400);padding:12px">No issues found.</td></tr>';
       }
 
-      const worksList = (data.whatWorks || []).map(w => `<li>${escHtml(w)}</li>`).join('');
-
+      const worksList = data.whatWorks ? `<li>${escHtml(data.whatWorks)}</li>` : '';
+      
       return `
         <div class="report-section">
           <span class="report-section-title">Overall verdict</span>
