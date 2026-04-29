@@ -662,8 +662,7 @@
         </div>`).join('');
 
       const rulesList = (data.rulesApplied || []).map(r => `<li>${escHtml(r)}</li>`).join('');
-      const notesList = (data.notes || []).map(n => `<li>${escHtml(n)}</li>`).join('');
-
+      const notesList = data.notes ? `<li>${escHtml(data.notes)}</li>` : '';
       return `
         <div style="margin-bottom:8px;font-size:13px;color:var(--grey-600)">
           <strong>Surface:</strong> ${escHtml(data.surface)} &nbsp;·&nbsp;
