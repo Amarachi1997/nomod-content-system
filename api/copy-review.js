@@ -1,23 +1,18 @@
 const Anthropic = require('@anthropic-ai/sdk');
+const fs = require('fs');
+const path = require('path');
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// Lazy-loaded once per Lambda instance — keeps cold-start errors visible
 let SYSTEM_PROMPT = null;
 
-async function buildSystemPrompt(host) {
+function buildSystemPrompt() {
   if (SYSTEM_PROMPT) return SYSTEM_PROMPT;
 
-  const base = `https://${host}`;
-  const [claudeRes, skillRes] = await Promise.all([
-    fetch(`${base}/CLAUDE.md`),
-    fetch(`${base}/skills/copy-reviewer.md`)
-  ]);
-
-  if (!claudeRes.ok) throw new Error(`Failed to fetch CLAUDE.md: ${claudeRes.status}`);
-  if (!skillRes.ok) throw new Error(`Failed to fetch copy-reviewer.md: ${skillRes.status}`);
-
-  const claudeMd = await claudeRes.text();
-  const skillMd = await skillRes.text();
+  const root = path.join(__dirname, '..');
+  const claudeMd = fs.readFileSync(path.join(root, 'CLAUDE.md'), 'utf8');
+  const skillMd = fs.readFileSync(path.join(root, 'skills', 'copy-reviewer.md'), 'utf8');
 
   SYSTEM_PROMPT = `${claudeMd}
 
@@ -43,16 +38,15 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'copy is required' });
   }
 
-  const host = req.headers.host;
-
   let systemPrompt;
   try {
-    systemPrompt = await buildSystemPrompt(host);
+    systemPrompt = buildSystemPrompt();
   } catch (err) {
     console.error('File load error:', err);
     return res.status(500).json({
       error: 'Failed to load content guidelines',
-      detail: err.message
+      detail: err.message,
+      path: err.path || null
     });
   }
 
@@ -68,9 +62,16 @@ module.exports = async function handler(req, res) {
 
   try {
     const stream = await client.messages.stream({
-      model: 'claude-sonnet-4-5',
+      model: 'claude-opus-4-7',
       max_tokens: 4096,
-      system: systemPrompt,
+      thinking: { type: 'adaptive' },
+      system: [
+        {
+          type: 'text',
+          text: systemPrompt,
+          cache_control: { type: 'ephemeral' }
+        }
+      ],
       messages: [
         {
           role: 'user',
