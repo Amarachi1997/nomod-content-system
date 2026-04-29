@@ -75,6 +75,7 @@ module.exports = async function handler(req, res) {
     }
 
     const data = await response.json();
+    console.log('Linear response:', JSON.stringify(data).slice(0, 1000));
 
     if (data.errors) {
       console.error('Linear GraphQL errors:', JSON.stringify(data.errors));
