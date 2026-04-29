@@ -37,10 +37,10 @@ module.exports = async function handler(req, res) {
     id = id.toUpperCase();
   }
 
-  // Use issues query with identifier filter — Linear's issue() only accepts UUIDs
+  // Use issueSearch — searches by the full identifier string like ENG-9245
   const query = `
     query GetIssue($id: String!) {
-      issues(filter: { identifier: { eq: $id } }) {
+      issueSearch(query: $id, first: 1) {
         nodes {
           identifier
           title
@@ -84,7 +84,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const issue = data?.data?.issues?.nodes?.[0];
+    const issue = data?.data?.issueSearch?.nodes?.[0];
     if (!issue) {
       return res.status(404).json({ error: 'Ticket not found' });
     }
