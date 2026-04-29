@@ -89,7 +89,6 @@ module.exports = async function handler(req, res) {
     const stream = await client.messages.stream({
       model: 'claude-sonnet-4-5',
       max_tokens: 4096,
-      thinking: { type: 'adaptive' },
       system: [
         {
           type: 'text',
