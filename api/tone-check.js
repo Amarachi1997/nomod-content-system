@@ -1,18 +1,23 @@
 const Anthropic = require('@anthropic-ai/sdk');
-const fs = require('fs');
-const path = require('path');
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-// Lazy-loaded once per Lambda instance — keeps cold-start errors visible
 let SYSTEM_PROMPT = null;
 
-function buildSystemPrompt() {
+async function buildSystemPrompt(host) {
   if (SYSTEM_PROMPT) return SYSTEM_PROMPT;
 
-  const root = path.join(__dirname, '..');
-  const claudeMd = fs.readFileSync(path.join(root, 'CLAUDE.md'), 'utf8');
-  const skillMd = fs.readFileSync(path.join(root, 'skills', 'tone-checker.md'), 'utf8');
+  const base = `https://${host}`;
+  const [claudeRes, skillRes] = await Promise.all([
+    fetch(`${base}/CLAUDE.md`),
+    fetch(`${base}/skills/tone-checker.md`)
+  ]);
+
+  if (!claudeRes.ok) throw new Error(`Failed to fetch CLAUDE.md: ${claudeRes.status}`);
+  if (!skillRes.ok) throw new Error(`Failed to fetch tone-checker.md: ${skillRes.status}`);
+
+  const claudeMd = await claudeRes.text();
+  const skillMd = await skillRes.text();
 
   SYSTEM_PROMPT = `${claudeMd}
 
@@ -44,44 +49,26 @@ If there are no issues, return an empty array for "issues" and set verdict to "P
 }
 
 module.exports = async function handler(req, res) {
-  // DEBUG: expose runtime environment so we can see exactly what's failing
-  const debugEnv = {
-    __dirname,
-    cwd: process.cwd(),
-    nodeVersion: process.version,
-    hasApiKey: !!process.env.ANTHROPIC_API_KEY,
-    filesAtRoot: (() => {
-      try { return fs.readdirSync(path.join(__dirname, '..')); } catch (e) { return e.message; }
-    })(),
-    filesAtDirname: (() => {
-      try { return fs.readdirSync(__dirname); } catch (e) { return e.message; }
-    })(),
-    skillsDir: (() => {
-      try { return fs.readdirSync(path.join(__dirname, '..', 'skills')); } catch (e) { return e.message; }
-    })(),
-  };
-
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed', debug: debugEnv });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const { copy } = req.body || {};
 
   if (!copy || typeof copy !== 'string' || copy.trim().length === 0) {
-    return res.status(400).json({ error: 'copy is required', debug: debugEnv });
+    return res.status(400).json({ error: 'copy is required' });
   }
+
+  const host = req.headers.host;
 
   let systemPrompt;
   try {
-    systemPrompt = buildSystemPrompt();
+    systemPrompt = await buildSystemPrompt(host);
   } catch (err) {
     console.error('File load error:', err);
     return res.status(500).json({
       error: 'Failed to load content guidelines',
-      detail: err.message,
-      stack: err.stack,
-      path: err.path || null,
-      debug: debugEnv
+      detail: err.message
     });
   }
 
@@ -89,13 +76,7 @@ module.exports = async function handler(req, res) {
     const stream = await client.messages.stream({
       model: 'claude-sonnet-4-5',
       max_tokens: 4096,
-      system: [
-        {
-          type: 'text',
-          text: systemPrompt,
-          cache_control: { type: 'ephemeral' }
-        }
-      ],
+      system: systemPrompt,
       messages: [
         {
           role: 'user',
@@ -108,7 +89,7 @@ module.exports = async function handler(req, res) {
 
     const textBlock = message.content.find(block => block.type === 'text');
     if (!textBlock) {
-      return res.status(500).json({ error: 'No text response from Claude', debug: debugEnv });
+      return res.status(500).json({ error: 'No text response from Claude' });
     }
 
     let parsed;
@@ -120,9 +101,7 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({
         error: 'Claude returned invalid JSON',
         detail: parseErr.message,
-        stack: parseErr.stack,
-        raw: textBlock.text,
-        debug: debugEnv
+        raw: textBlock.text
       });
     }
 
@@ -131,12 +110,8 @@ module.exports = async function handler(req, res) {
     console.error('Claude API error:', err);
     res.status(500).json({
       error: err.message || 'Internal server error',
-      detail: err.message,
-      stack: err.stack,
       type: err.constructor?.name || null,
-      status: err.status || null,
-      headers: err.headers || null,
-      debug: debugEnv
+      status: err.status || null
     });
   }
 };
