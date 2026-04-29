@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nomod Content System</title>
+  <link rel="icon" href="/favicon.ico" />
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -712,8 +713,8 @@
         output.classList.add('visible');
       } catch (err) {
         console.error('Copy review error:', err);
-        result.textContent = 'Something went wrong: ' + err.message;
-        output.classList.add('visible');
+        result.textContent = 'Something went wrong. Please try again.';
+                output.classList.add('visible');
       } finally {
         btn.disabled = false;
         btn.innerHTML = 'Review copy';
