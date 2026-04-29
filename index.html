@@ -711,7 +711,8 @@
         result.innerHTML = report;
         output.classList.add('visible');
       } catch (err) {
-        result.textContent = 'Something went wrong. Please try again.';
+        console.error('Copy review error:', err);
+        result.textContent = 'Something went wrong: ' + err.message;
         output.classList.add('visible');
       } finally {
         btn.disabled = false;
