@@ -4,12 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nomod Content System</title>
+  <link rel="icon" href="/favicon.ico" />
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --black: #000000;
@@ -22,342 +19,164 @@
       --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     }
 
-    body {
-      font-family: var(--font);
-      background: var(--white);
-      color: var(--black);
-      min-height: 100vh;
-      font-size: 15px;
-      line-height: 1.6;
-    }
+    body { font-family: var(--font); background: var(--white); color: var(--black); min-height: 100vh; font-size: 15px; line-height: 1.6; }
 
-    /* ── Header ── */
-    header {
-      border-bottom: 1px solid var(--grey-200);
-      padding: 20px 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    header { border-bottom: 1px solid var(--grey-200); padding: 20px 24px; display: flex; align-items: center; gap: 12px; }
+    header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; }
+    header .version { font-size: 12px; color: var(--grey-400); font-weight: 400; }
 
-    header h1 {
-      font-size: 17px;
-      font-weight: 600;
-      letter-spacing: -0.2px;
-    }
+    main { max-width: 720px; margin: 0 auto; padding: 40px 24px 80px; }
 
-    header .version {
-      font-size: 12px;
-      color: var(--grey-400);
-      font-weight: 400;
-    }
+    /* ── Surface picker ── */
+    .picker-screen { display: block; }
+    .picker-screen.hidden { display: none; }
 
-    /* ── Layout ── */
-    main {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 40px 24px 80px;
-    }
+    .picker-title { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; margin-bottom: 6px; }
+    .picker-desc { font-size: 14px; color: var(--grey-600); margin-bottom: 28px; }
 
-    /* ── Tab switcher ── */
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 36px;
-      border-bottom: 1px solid var(--grey-200);
-      padding-bottom: 0;
-    }
+    .surface-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
+    @media (max-width: 500px) { .surface-grid { grid-template-columns: repeat(2, 1fr); } }
 
-    .tab-btn {
-      background: none;
-      border: none;
-      padding: 10px 16px;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--grey-400);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      transition: color 0.15s, border-color 0.15s;
-      font-family: var(--font);
-    }
-
-    .tab-btn:hover {
-      color: var(--black);
-    }
-
-    .tab-btn.active {
-      color: var(--black);
-      border-bottom-color: var(--black);
-    }
-
-    /* ── Panel ── */
-    .panel {
-      display: none;
-    }
-
-    .panel.active {
-      display: block;
-    }
-
-    /* ── Section label ── */
-    .panel-title {
-      font-size: 22px;
-      font-weight: 600;
-      letter-spacing: -0.4px;
-      margin-bottom: 6px;
-    }
-
-    .panel-desc {
-      font-size: 14px;
-      color: var(--grey-600);
-      margin-bottom: 28px;
-    }
-
-    /* ── Form elements ── */
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 6px;
-      color: var(--black);
-    }
-
-    textarea,
-    input[type="text"] {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1px solid var(--grey-200);
+    .surface-card {
+      border: 1.5px solid var(--grey-200);
       border-radius: var(--radius);
-      font-family: var(--font);
-      font-size: 14px;
-      color: var(--black);
+      padding: 14px 16px;
+      cursor: pointer;
       background: var(--white);
-      resize: vertical;
-      transition: border-color 0.15s;
-      -webkit-appearance: none;
+      text-align: left;
+      font-family: var(--font);
+      transition: border-color 0.15s, background 0.15s;
     }
+    .surface-card:hover { border-color: var(--black); }
+    .surface-card.selected { border-color: var(--black); background: var(--grey-100); }
+    .surface-card-icon { font-size: 20px; margin-bottom: 6px; display: block; }
+    .surface-card-label { font-size: 13px; font-weight: 600; color: var(--black); display: block; }
+    .surface-card-hint { font-size: 11px; color: var(--grey-400); margin-top: 2px; display: block; }
 
-    textarea:focus,
-    input[type="text"]:focus {
-      outline: none;
-      border-color: var(--black);
+    .other-input-wrap { display: none; margin-top: 4px; }
+    .other-input-wrap.visible { display: block; }
+    .other-input-wrap input {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid var(--black); border-radius: var(--radius);
+      font-family: var(--font); font-size: 14px; color: var(--black); background: var(--white); margin-top: 10px;
     }
+    .other-input-wrap input:focus { outline: none; }
 
-    textarea::placeholder,
-    input[type="text"]::placeholder {
-      color: var(--grey-400);
+    .market-row { display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+    .market-btn {
+      border: 1.5px solid var(--grey-200); border-radius: 20px; padding: 6px 16px;
+      font-size: 13px; font-weight: 500; cursor: pointer; background: var(--white);
+      font-family: var(--font); color: var(--grey-600); transition: border-color 0.15s, color 0.15s;
     }
+    .market-btn:hover { border-color: var(--black); color: var(--black); }
+    .market-btn.selected { border-color: var(--black); color: var(--black); background: var(--grey-100); }
 
-    textarea {
-      min-height: 160px;
+    .picker-continue {
+      background: var(--black); color: var(--white); border: none;
+      padding: 12px 28px; border-radius: var(--radius); font-size: 14px; font-weight: 500;
+      cursor: pointer; font-family: var(--font); transition: opacity 0.15s; opacity: 0.3; pointer-events: none;
     }
+    .picker-continue.ready { opacity: 1; pointer-events: auto; }
+    .picker-continue.ready:hover { opacity: 0.8; }
 
-    .field {
-      margin-bottom: 18px;
+    /* ── Tools screen ── */
+    .tools-screen { display: none; }
+    .tools-screen.active { display: block; }
+
+    .tools-header { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--grey-200); flex-wrap: wrap; }
+
+    .tools-context-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--grey-100); border-radius: 20px; padding: 5px 12px;
+      font-size: 13px; font-weight: 500; color: var(--black);
     }
-
-    .field-hint {
-      font-size: 12px;
-      color: var(--grey-400);
-      margin-top: 5px;
+    .tools-context-badge .change-btn {
+      background: none; border: none; color: var(--grey-400); font-size: 12px;
+      cursor: pointer; font-family: var(--font); padding: 0; margin-left: 4px; text-decoration: underline;
     }
+    .tools-context-badge .change-btn:hover { color: var(--black); }
 
-    /* ── Primary button ── */
+    .tool-tabs { display: flex; gap: 0; margin-bottom: 32px; border-bottom: 1px solid var(--grey-200); overflow-x: auto; }
+    .tool-tab {
+      background: none; border: none; padding: 10px 18px; font-size: 13px; font-weight: 500;
+      color: var(--grey-400); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s; font-family: var(--font); white-space: nowrap;
+    }
+    .tool-tab:hover { color: var(--black); }
+    .tool-tab.active { color: var(--black); border-bottom-color: var(--black); }
+
+    .tool-panel { display: none; }
+    .tool-panel.active { display: block; }
+
+    .panel-title { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 5px; }
+    .panel-desc { font-size: 14px; color: var(--grey-600); margin-bottom: 24px; }
+
+    label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--black); }
+
+    textarea, input[type="text"] {
+      width: 100%; padding: 12px 14px;
+      border: 1px solid var(--grey-200); border-radius: var(--radius);
+      font-family: var(--font); font-size: 14px; color: var(--black); background: var(--white);
+      resize: vertical; transition: border-color 0.15s; -webkit-appearance: none;
+    }
+    textarea:focus, input[type="text"]:focus { outline: none; border-color: var(--black); }
+    textarea::placeholder, input[type="text"]::placeholder { color: var(--grey-400); }
+    textarea { min-height: 140px; }
+
+    .field { margin-bottom: 16px; }
+    .field-hint { font-size: 12px; color: var(--grey-400); margin-top: 5px; }
+    .field-prefilled input { background: var(--grey-100); color: var(--grey-600); border-color: var(--grey-200); }
+
     .btn-primary {
-      background: var(--black);
-      color: var(--white);
-      border: none;
-      padding: 12px 22px;
-      border-radius: var(--radius);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: var(--font);
-      transition: opacity 0.15s;
-      margin-top: 8px;
+      background: var(--black); color: var(--white); border: none;
+      padding: 12px 22px; border-radius: var(--radius); font-size: 14px; font-weight: 500;
+      cursor: pointer; font-family: var(--font); transition: opacity 0.15s; margin-top: 6px;
     }
+    .btn-primary:hover { opacity: 0.8; }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .btn-primary:hover {
-      opacity: 0.8;
-    }
+    .output { margin-top: 32px; display: none; }
+    .output.visible { display: block; }
+    .output-divider { border: none; border-top: 1px solid var(--grey-200); margin-bottom: 24px; }
+    .output-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--grey-400); margin-bottom: 16px; }
+    .output-content { font-size: 14px; line-height: 1.75; word-break: break-word; }
 
-    .btn-primary:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    /* ── Output area ── */
-    .output {
-      margin-top: 36px;
-      display: none;
-    }
-
-    .output.visible {
-      display: block;
-    }
-
-    .output-divider {
-      border: none;
-      border-top: 1px solid var(--grey-200);
-      margin-bottom: 28px;
-    }
-
-    .output-label {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: var(--grey-400);
-      margin-bottom: 16px;
-    }
-
-    .output-content {
-      font-size: 14px;
-      line-height: 1.75;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    /* verdict badges */
-    .verdict {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      margin-left: 8px;
-    }
-
+    .verdict { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-left: 8px; }
     .verdict-fail { background: #fde8e8; color: #c0392b; }
     .verdict-pass { background: #e8f8ee; color: #1e8449; }
     .verdict-notes { background: #fff4e0; color: #b7770d; }
 
-    /* report table */
-    .report-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      margin: 16px 0;
-    }
+    .report-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+    .report-table th { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--grey-200); font-size: 11px; font-weight: 600; color: var(--grey-600); text-transform: uppercase; letter-spacing: 0.4px; }
+    .report-table td { padding: 10px 12px; border-bottom: 1px solid var(--grey-100); vertical-align: top; }
+    .report-table tr:last-child td { border-bottom: none; }
 
-    .report-table th {
-      text-align: left;
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--grey-200);
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--grey-600);
-    }
+    .report-section { margin-bottom: 22px; }
+    .report-section-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--black); display: block; }
+    .report-section p, .report-section li { font-size: 14px; color: var(--grey-600); }
+    .report-section ul { padding-left: 18px; }
+    .report-section li { margin-bottom: 4px; }
 
-    .report-table td {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--grey-100);
-      vertical-align: top;
-    }
+    .revised-block { background: var(--grey-100); border-radius: var(--radius); padding: 16px 18px; font-size: 14px; line-height: 1.7; color: var(--black); white-space: pre-wrap; }
 
-    .report-table tr:last-child td {
-      border-bottom: none;
-    }
+    .copy-block { margin-bottom: 18px; }
+    .copy-block-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--grey-400); margin-bottom: 6px; }
+    .copy-block-text { font-size: 15px; color: var(--black); padding: 12px 14px; background: var(--grey-100); border-radius: var(--radius); }
+    .copy-block-text.cta { font-weight: 600; }
 
-    /* report sections */
-    .report-section {
-      margin-bottom: 24px;
-    }
+    .rules-list, .notes-list { font-size: 13px; color: var(--grey-600); padding-left: 18px; }
+    .rules-list li, .notes-list li { margin-bottom: 4px; }
 
-    .report-section-title {
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: var(--black);
-    }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .report-section p,
-    .report-section li {
-      font-size: 14px;
-      color: var(--grey-600);
-    }
-
-    .report-section ul {
-      padding-left: 18px;
-    }
-
-    .report-section li {
-      margin-bottom: 4px;
-    }
-
-    .revised-block {
-      background: var(--grey-100);
-      border-radius: var(--radius);
-      padding: 16px 18px;
-      font-size: 14px;
-      line-height: 1.7;
-      color: var(--black);
-    }
-
-    /* microcopy output blocks */
-    .copy-block {
-      margin-bottom: 20px;
-    }
-
-    .copy-block-label {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--grey-400);
-      margin-bottom: 6px;
-    }
-
-    .copy-block-text {
-      font-size: 15px;
-      color: var(--black);
-      padding: 12px 14px;
-      background: var(--grey-100);
-      border-radius: var(--radius);
-    }
-
-    .copy-block-text.cta {
-      font-weight: 600;
-    }
-
-    .rules-list,
-    .notes-list {
-      font-size: 13px;
-      color: var(--grey-600);
-      padding-left: 18px;
-    }
-
-    .rules-list li,
-    .notes-list li {
-      margin-bottom: 4px;
-    }
-
-    /* loading state */
-    .spinner {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255,255,255,0.4);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-      margin-right: 8px;
-      vertical-align: middle;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* ── Responsive ── */
     @media (max-width: 600px) {
       header { padding: 16px; }
-      main { padding: 28px 16px 60px; }
-      .panel-title { font-size: 20px; }
+      main { padding: 24px 16px 60px; }
+      .picker-title { font-size: 20px; }
       .report-table { font-size: 12px; }
-      .report-table th,
-      .report-table td { padding: 8px; }
+      .report-table th, .report-table td { padding: 8px; }
+      .tool-tab { padding: 10px 12px; font-size: 12px; }
     }
   </style>
 </head>
@@ -365,324 +184,428 @@
 
   <header>
     <h1>Nomod Content System</h1>
-    <span class="version">v1.1</span>
+    <span class="version">v2.0</span>
   </header>
 
   <main>
 
-    <!-- Tab switcher -->
-    <div class="tabs" role="tablist">
-      <button class="tab-btn active" role="tab" aria-selected="true" data-target="tone">Tone checker</button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-target="micro">Microcopy generator</button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-target="review">Copy reviewer</button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-target="glossary">Glossary validator</button>
+    <!-- ── Step 1: Surface picker ── -->
+    <div class="picker-screen" id="picker-screen">
+      <h2 class="picker-title">What are you working on?</h2>
+      <p class="picker-desc">Pick a content type and we'll show you the right tools, pre-filled with your context.</p>
+
+      <div class="surface-grid">
+        <button class="surface-card" data-surface="Email">
+          <span class="surface-card-icon">✉️</span>
+          <span class="surface-card-label">Email</span>
+          <span class="surface-card-hint">Marketing or transactional</span>
+        </button>
+        <button class="surface-card" data-surface="Modal">
+          <span class="surface-card-icon">🪟</span>
+          <span class="surface-card-label">Modal</span>
+          <span class="surface-card-hint">Confirmations, alerts, pop-ups</span>
+        </button>
+        <button class="surface-card" data-surface="Notification">
+          <span class="surface-card-icon">🔔</span>
+          <span class="surface-card-label">Notification</span>
+          <span class="surface-card-hint">Push or in-app</span>
+        </button>
+        <button class="surface-card" data-surface="Error state">
+          <span class="surface-card-icon">⚠️</span>
+          <span class="surface-card-label">Error state</span>
+          <span class="surface-card-hint">Inline errors, failed states</span>
+        </button>
+        <button class="surface-card" data-surface="Onboarding">
+          <span class="surface-card-icon">🚀</span>
+          <span class="surface-card-label">Onboarding</span>
+          <span class="surface-card-hint">Setup flows, welcome screens</span>
+        </button>
+        <button class="surface-card" data-surface="Button or CTA">
+          <span class="surface-card-icon">🖱️</span>
+          <span class="surface-card-label">Button or CTA</span>
+          <span class="surface-card-hint">Labels, action text</span>
+        </button>
+        <button class="surface-card" data-surface="Empty state">
+          <span class="surface-card-icon">📭</span>
+          <span class="surface-card-label">Empty state</span>
+          <span class="surface-card-hint">Zero data, first-use screens</span>
+        </button>
+        <button class="surface-card" data-surface="FAQ">
+          <span class="surface-card-icon">❓</span>
+          <span class="surface-card-label">FAQ</span>
+          <span class="surface-card-hint">In-app or web help content</span>
+        </button>
+        <button class="surface-card" data-surface="Nomod Docs">
+          <span class="surface-card-icon">📄</span>
+          <span class="surface-card-label">Nomod Docs</span>
+          <span class="surface-card-hint">Guides, how-tos, references</span>
+        </button>
+        <button class="surface-card" data-surface="Spec or ticket">
+          <span class="surface-card-icon">🗂️</span>
+          <span class="surface-card-label">Spec or ticket</span>
+          <span class="surface-card-hint">Figma, Jira, Notion, PRD</span>
+        </button>
+        <button class="surface-card" data-surface="App listing">
+          <span class="surface-card-icon">📱</span>
+          <span class="surface-card-label">App listing</span>
+          <span class="surface-card-hint">App Store or Google Play</span>
+        </button>
+        <button class="surface-card" data-surface="other">
+          <span class="surface-card-icon">✏️</span>
+          <span class="surface-card-label">Other</span>
+          <span class="surface-card-hint">Describe your content type</span>
+        </button>
+      </div>
+
+      <div class="other-input-wrap" id="other-input-wrap">
+        <input type="text" id="other-surface-input" placeholder="Describe the content type, e.g. SMS, web landing page, receipt…" />
+      </div>
+
+      <div style="margin-bottom: 24px; margin-top: 24px;">
+        <p style="font-size: 13px; font-weight: 500; color: var(--black); margin-bottom: 10px;">Market <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></p>
+        <div class="market-row">
+          <button class="market-btn" data-market="UAE">🇦🇪 UAE</button>
+          <button class="market-btn" data-market="KSA">🇸🇦 KSA</button>
+          <button class="market-btn" data-market="Both">Both</button>
+          <button class="market-btn" data-market="">Not applicable</button>
+        </div>
+      </div>
+
+      <button class="picker-continue" id="picker-continue">Continue →</button>
     </div>
 
-    <!-- ── Tone checker panel ── -->
-    <div class="panel active" id="panel-tone">
-      <h2 class="panel-title">Tone checker</h2>
-      <p class="panel-desc">Paste copy below to check it against Nomod's content rules in CLAUDE.md.</p>
+    <!-- ── Step 2: Tools ── -->
+    <div class="tools-screen" id="tools-screen">
 
-      <div class="field">
-        <label for="tone-input">Copy to review</label>
-        <textarea id="tone-input" placeholder="Paste the copy you want to check here…"></textarea>
+      <div class="tools-header">
+        <div class="tools-context-badge">
+          <span id="badge-surface">Email</span>
+          <button class="change-btn" id="change-surface-btn">Change</button>
+        </div>
+        <div class="tools-context-badge" id="market-badge" style="display:none;">
+          <span id="badge-market"></span>
+        </div>
       </div>
 
-      <button class="btn-primary" id="tone-submit">Check tone</button>
-
-      <div class="output" id="tone-output">
-        <hr class="output-divider" />
-        <div class="output-label">Tone check report</div>
-        <div class="output-content" id="tone-result"></div>
-      </div>
-    </div>
-
-    <!-- ── Microcopy generator panel ── -->
-    <div class="panel" id="panel-micro">
-      <h2 class="panel-title">Microcopy generator</h2>
-      <p class="panel-desc">Describe what you need and get ready-to-use copy based on Nomod's content standards.</p>
-
-      <div class="field">
-        <label for="micro-surface">Surface</label>
-        <input type="text" id="micro-surface" placeholder="e.g. modal, button, error state, empty state" />
+      <div class="tool-tabs" role="tablist">
+        <button class="tool-tab active" data-tool="generate">Generate copy</button>
+        <button class="tool-tab" data-tool="review">Review copy</button>
+        <button class="tool-tab" data-tool="tone">Check tone</button>
+        <button class="tool-tab" data-tool="glossary">Validate terms</button>
       </div>
 
-      <div class="field">
-        <label for="micro-flow">Screen or flow</label>
-        <input type="text" id="micro-flow" placeholder="e.g. payout setup, document verification, cancellation" />
+      <!-- Generate copy -->
+      <div class="tool-panel active" id="tool-generate">
+        <h2 class="panel-title">Generate copy</h2>
+        <p class="panel-desc">Describe the flow and moment and get ready-to-use copy built to Nomod's standards.</p>
+        <div class="field field-prefilled">
+          <label for="gen-surface">Surface</label>
+          <input type="text" id="gen-surface" readonly />
+        </div>
+        <div class="field">
+          <label for="gen-flow">Screen or flow</label>
+          <input type="text" id="gen-flow" placeholder="e.g. document verification, payout setup, cancellation flow" />
+        </div>
+        <div class="field">
+          <label for="gen-moment">Moment</label>
+          <input type="text" id="gen-moment" placeholder="e.g. user's document failed verification, first payout set up" />
+        </div>
+        <div class="field">
+          <label for="gen-tone">Tone note <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+          <input type="text" id="gen-tone" placeholder="e.g. high stakes, routine, celebratory" />
+        </div>
+        <button class="btn-primary" id="gen-submit">Generate copy</button>
+        <div class="output" id="gen-output">
+          <hr class="output-divider" />
+          <div class="output-label">Generated copy</div>
+          <div class="output-content" id="gen-result"></div>
+        </div>
       </div>
 
-      <div class="field">
-        <label for="micro-moment">Moment</label>
-        <input type="text" id="micro-moment" placeholder="e.g. user's document failed verification" />
+      <!-- Review copy -->
+      <div class="tool-panel" id="tool-review">
+        <h2 class="panel-title">Review copy</h2>
+        <p class="panel-desc">Paste your copy for a full check against all 15 rules in CLAUDE.md.</p>
+        <div class="field">
+          <label for="rev-copy">Copy to review</label>
+          <textarea id="rev-copy" placeholder="Paste the copy you want to review here…"></textarea>
+        </div>
+        <div class="field field-prefilled">
+          <label for="rev-surface">Surface</label>
+          <input type="text" id="rev-surface" readonly />
+        </div>
+        <div class="field field-prefilled">
+          <label for="rev-market">Market</label>
+          <input type="text" id="rev-market" readonly />
+        </div>
+        <div class="field">
+          <label for="rev-context">Context <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+          <input type="text" id="rev-context" placeholder="e.g. document verification failed, user is setting up payouts" />
+        </div>
+        <div class="field">
+          <label for="rev-outcome">Outcome controlled by Nomod <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+          <input type="text" id="rev-outcome" placeholder="Yes / No / Partially" />
+          <p class="field-hint">Helps check whether the copy over-promises a result Nomod cannot guarantee.</p>
+        </div>
+        <button class="btn-primary" id="rev-submit">Review copy</button>
+        <div class="output" id="rev-output">
+          <hr class="output-divider" />
+          <div class="output-label">Copy review report</div>
+          <div class="output-content" id="rev-result"></div>
+        </div>
       </div>
 
-      <div class="field">
-        <label for="micro-tone">Tone note <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
-        <input type="text" id="micro-tone" placeholder="e.g. high stakes, routine, celebratory" />
-        <p class="field-hint">Leave blank if no specific tone guidance is needed.</p>
+      <!-- Check tone -->
+      <div class="tool-panel" id="tool-tone">
+        <h2 class="panel-title">Check tone</h2>
+        <p class="panel-desc">Paste your copy to check it against Nomod's voice and tone rules.</p>
+        <div class="field">
+          <label for="tone-copy">Copy to check</label>
+          <textarea id="tone-copy" placeholder="Paste the copy you want to tone-check here…"></textarea>
+        </div>
+        <button class="btn-primary" id="tone-submit">Check tone</button>
+        <div class="output" id="tone-output">
+          <hr class="output-divider" />
+          <div class="output-label">Tone check report</div>
+          <div class="output-content" id="tone-result"></div>
+        </div>
       </div>
 
-      <button class="btn-primary" id="micro-submit">Generate copy</button>
-
-      <div class="output" id="micro-output">
-        <hr class="output-divider" />
-        <div class="output-label">Microcopy output</div>
-        <div class="output-content" id="micro-result"></div>
-      </div>
-    </div>
-
-    <!-- ── Copy reviewer panel ── -->
-    <div class="panel" id="panel-review">
-      <h2 class="panel-title">Copy reviewer</h2>
-      <p class="panel-desc">Paste copy and add context to run a full check against all 15 rules in CLAUDE.md.</p>
-
-      <div class="field">
-        <label for="review-copy">Copy to review</label>
-        <textarea id="review-copy" placeholder="Paste the copy you want to review here…"></textarea>
-      </div>
-
-      <div class="field">
-        <label for="review-surface">Surface <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
-        <input type="text" id="review-surface" placeholder="e.g. modal, notification, email, FAQ, Nomod Docs, button" />
-      </div>
-
-      <div class="field">
-        <label for="review-market">Market <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
-        <input type="text" id="review-market" placeholder="UAE / KSA / Both" />
-        <p class="field-hint">Leave blank if the copy is not market-specific.</p>
+      <!-- Validate terms -->
+      <div class="tool-panel" id="tool-glossary">
+        <h2 class="panel-title">Validate terms</h2>
+        <p class="panel-desc">Paste any copy — from a Figma spec, Jira ticket, email, or UI — to check it against Nomod's approved terminology.</p>
+        <div class="field">
+          <label for="glos-copy">Copy to validate</label>
+          <textarea id="glos-copy" placeholder="Paste copy here — UI strings, ticket descriptions, spec notes, email drafts…"></textarea>
+        </div>
+        <div class="field field-prefilled">
+          <label for="glos-surface">Surface</label>
+          <input type="text" id="glos-surface" readonly />
+        </div>
+        <div class="field field-prefilled">
+          <label for="glos-market">Market</label>
+          <input type="text" id="glos-market" readonly />
+        </div>
+        <button class="btn-primary" id="glos-submit">Validate terms</button>
+        <div class="output" id="glos-output">
+          <hr class="output-divider" />
+          <div class="output-label">Glossary validation report</div>
+          <div class="output-content" id="glos-result"></div>
+        </div>
       </div>
 
-      <div class="field">
-        <label for="review-context">Context <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
-        <input type="text" id="review-context" placeholder="e.g. document verification failed, user is setting up payouts" />
-      </div>
-
-      <div class="field">
-        <label for="review-outcome">Outcome controlled by Nomod <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
-        <input type="text" id="review-outcome" placeholder="Yes / No / Partially" />
-        <p class="field-hint">Helps check whether the copy over-promises a result Nomod cannot guarantee.</p>
-      </div>
-
-      <button class="btn-primary" id="review-submit">Review copy</button>
-
-      <div class="output" id="review-output">
-        <hr class="output-divider" />
-        <div class="output-label">Copy review report</div>
-        <div class="output-content" id="review-result"></div>
-      </div>
-    </div>
-
-    <!-- ── Glossary validator panel ── -->
-    <div class="panel" id="panel-glossary">
-      <h2 class="panel-title">Glossary validator</h2>
-      <p class="panel-desc">Paste any copy — from a Figma spec, Jira ticket, email, or product UI — to check it against Nomod's approved terminology. Works for the whole team.</p>
-
-      <div class="field">
-        <label for="glossary-copy">Copy to validate</label>
-        <textarea id="glossary-copy" placeholder="Paste copy here — UI strings, ticket descriptions, spec notes, email drafts…"></textarea>
-      </div>
-
-      <div class="field">
-        <label for="glossary-surface">Surface or document type <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
-        <input type="text" id="glossary-surface" placeholder="e.g. Figma spec, Jira ticket, modal, email, PRD" />
-      </div>
-
-      <div class="field">
-        <label for="glossary-market">Market <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
-        <input type="text" id="glossary-market" placeholder="UAE / KSA / Both" />
-        <p class="field-hint">Required for localisation checks — e.g. partner ordering, identity document names, payout days.</p>
-      </div>
-
-      <button class="btn-primary" id="glossary-submit">Validate terms</button>
-
-      <div class="output" id="glossary-output">
-        <hr class="output-divider" />
-        <div class="output-label">Glossary validation report</div>
-        <div class="output-content" id="glossary-result"></div>
-      </div>
     </div>
 
   </main>
 
   <script>
-    // ── Tab switching ──────────────────────────────────────
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => {
-          b.classList.remove('active');
-          b.setAttribute('aria-selected', 'false');
-        });
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        btn.setAttribute('aria-selected', 'true');
-        document.getElementById('panel-' + btn.dataset.target).classList.add('active');
+
+    // ── State ─────────────────────────────────────────────
+    let selectedSurface = null;
+    let selectedMarket  = '';
+
+    // ── Surface picker ────────────────────────────────────
+    document.querySelectorAll('.surface-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.surface-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedSurface = card.dataset.surface;
+        const otherWrap = document.getElementById('other-input-wrap');
+        if (selectedSurface === 'other') {
+          otherWrap.classList.add('visible');
+          document.getElementById('other-surface-input').focus();
+        } else {
+          otherWrap.classList.remove('visible');
+        }
+        updateContinueBtn();
       });
     });
 
-    // ── Helpers ───────────────────────────────────────────
-    function setLoading(btn, loading) {
-      if (loading) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span>Checking…';
-      } else {
-        btn.disabled = false;
-        btn.innerHTML = btn.dataset.label;
-      }
+    document.getElementById('other-surface-input').addEventListener('input', updateContinueBtn);
+
+    document.querySelectorAll('.market-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.market-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedMarket = btn.dataset.market;
+      });
+    });
+
+    function updateContinueBtn() {
+      const btn = document.getElementById('picker-continue');
+      const otherVal = document.getElementById('other-surface-input').value.trim();
+      const ready = selectedSurface && (selectedSurface !== 'other' || otherVal.length > 0);
+      btn.classList.toggle('ready', ready);
     }
 
-    // Store original labels
-    document.getElementById('tone-submit').dataset.label = 'Check tone';
-    document.getElementById('micro-submit').dataset.label = 'Generate copy';
-    document.getElementById('review-submit').dataset.label = 'Review copy';
+    document.getElementById('picker-continue').addEventListener('click', () => {
+      if (!document.getElementById('picker-continue').classList.contains('ready')) return;
 
-    // ── Tone checker ──────────────────────────────────────
-    document.getElementById('tone-submit').addEventListener('click', async () => {
-      const copy = document.getElementById('tone-input').value.trim();
+      let surface = selectedSurface;
+      if (surface === 'other') {
+        surface = document.getElementById('other-surface-input').value.trim();
+      }
+
+      // Pre-fill surface fields
+      ['gen-surface', 'rev-surface', 'glos-surface'].forEach(id => {
+        document.getElementById(id).value = surface;
+      });
+
+      // Pre-fill market fields
+      const marketDisplay = selectedMarket || 'Not specified';
+      ['rev-market', 'glos-market'].forEach(id => {
+        document.getElementById(id).value = marketDisplay;
+      });
+
+      // Update badge
+      document.getElementById('badge-surface').textContent = surface;
+      const marketBadge = document.getElementById('market-badge');
+      if (selectedMarket) {
+        document.getElementById('badge-market').textContent = selectedMarket;
+        marketBadge.style.display = 'inline-flex';
+      } else {
+        marketBadge.style.display = 'none';
+      }
+
+      // Switch screens
+      document.getElementById('picker-screen').classList.add('hidden');
+      document.getElementById('tools-screen').classList.add('active');
+    });
+
+    document.getElementById('change-surface-btn').addEventListener('click', () => {
+      document.getElementById('tools-screen').classList.remove('active');
+      document.getElementById('picker-screen').classList.remove('hidden');
+    });
+
+    // ── Tool tab switching ────────────────────────────────
+    document.querySelectorAll('.tool-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tool-' + tab.dataset.tool).classList.add('active');
+      });
+    });
+
+    // ── Generate copy ─────────────────────────────────────
+    document.getElementById('gen-submit').addEventListener('click', async () => {
+      const surface = document.getElementById('gen-surface').value.trim();
+      const flow    = document.getElementById('gen-flow').value.trim();
+      const moment  = document.getElementById('gen-moment').value.trim();
+      const tone    = document.getElementById('gen-tone').value.trim();
+      if (!flow || !moment) { alert('Please fill in Screen or flow and Moment before generating.'); return; }
+      const btn = document.getElementById('gen-submit');
+      btn.innerHTML = '<span class="spinner"></span>Generating…'; btn.disabled = true;
+      const output = document.getElementById('gen-output');
+      const result = document.getElementById('gen-result');
+      output.classList.remove('visible');
+      try {
+        const res = await fetch('/api/microcopy-gen', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ surface, flow, moment, tone }) });
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        result.innerHTML = formatMicroOutput(data);
+        output.classList.add('visible');
+      } catch (err) {
+        result.textContent = 'Something went wrong. Please try again.';
+        output.classList.add('visible');
+      } finally { btn.disabled = false; btn.innerHTML = 'Generate copy'; }
+    });
+
+    // ── Review copy ───────────────────────────────────────
+    document.getElementById('rev-submit').addEventListener('click', async () => {
+      const copy    = document.getElementById('rev-copy').value.trim();
+      const surface = document.getElementById('rev-surface').value.trim();
+      const market  = document.getElementById('rev-market').value.trim();
+      const context = document.getElementById('rev-context').value.trim();
+      const outcomeControlled = document.getElementById('rev-outcome').value.trim();
       if (!copy) return;
+      const btn = document.getElementById('rev-submit');
+      btn.innerHTML = '<span class="spinner"></span>Reviewing…'; btn.disabled = true;
+      const output = document.getElementById('rev-output');
+      const result = document.getElementById('rev-result');
+      output.classList.remove('visible');
+      try {
+        const res = await fetch('/api/copy-review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ copy, surface, market, context, outcomeControlled }) });
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        result.innerHTML = formatCopyReview(data);
+        output.classList.add('visible');
+      } catch (err) {
+        result.textContent = 'Something went wrong. Please try again.';
+        output.classList.add('visible');
+      } finally { btn.disabled = false; btn.innerHTML = 'Review copy'; }
+    });
 
+    // ── Check tone ────────────────────────────────────────
+    document.getElementById('tone-submit').addEventListener('click', async () => {
+      const copy = document.getElementById('tone-copy').value.trim();
+      if (!copy) return;
       const btn = document.getElementById('tone-submit');
-      btn.innerHTML = '<span class="spinner"></span>Checking…';
-      btn.disabled = true;
-
+      btn.innerHTML = '<span class="spinner"></span>Checking…'; btn.disabled = true;
       const output = document.getElementById('tone-output');
       const result = document.getElementById('tone-result');
       output.classList.remove('visible');
-
       try {
-        const report = await runToneCheck(copy);
-        result.innerHTML = report;
+        const res = await fetch('/api/tone-check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ copy }) });
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        result.innerHTML = formatToneReport(data);
         output.classList.add('visible');
       } catch (err) {
         result.textContent = 'Something went wrong. Please try again.';
         output.classList.add('visible');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = 'Check tone';
-      }
+      } finally { btn.disabled = false; btn.innerHTML = 'Check tone'; }
     });
 
-    // ── Microcopy generator ───────────────────────────────
-    document.getElementById('micro-submit').addEventListener('click', async () => {
-      const surface = document.getElementById('micro-surface').value.trim();
-      const flow    = document.getElementById('micro-flow').value.trim();
-      const moment  = document.getElementById('micro-moment').value.trim();
-      const tone    = document.getElementById('micro-tone').value.trim();
-
-      if (!surface || !flow || !moment) {
-        alert('Please fill in Surface, Screen or flow, and Moment before generating.');
-        return;
-      }
-
-      const btn = document.getElementById('micro-submit');
-      btn.innerHTML = '<span class="spinner"></span>Generating…';
-      btn.disabled = true;
-
-      const output = document.getElementById('micro-output');
-      const result = document.getElementById('micro-result');
+    // ── Validate terms ────────────────────────────────────
+    document.getElementById('glos-submit').addEventListener('click', async () => {
+      const copy    = document.getElementById('glos-copy').value.trim();
+      const surface = document.getElementById('glos-surface').value.trim();
+      const market  = document.getElementById('glos-market').value.trim();
+      if (!copy) return;
+      const btn = document.getElementById('glos-submit');
+      btn.innerHTML = '<span class="spinner"></span>Validating…'; btn.disabled = true;
+      const output = document.getElementById('glos-output');
+      const result = document.getElementById('glos-result');
       output.classList.remove('visible');
-
       try {
-        const copy = await runMicroGen({ surface, flow, moment, tone });
-        result.innerHTML = copy;
+        const res = await fetch('/api/glossary-check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ copy, surface, market }) });
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        result.innerHTML = formatGlossaryReport(data);
         output.classList.add('visible');
       } catch (err) {
         result.textContent = 'Something went wrong. Please try again.';
         output.classList.add('visible');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = 'Generate copy';
-      }
+      } finally { btn.disabled = false; btn.innerHTML = 'Validate terms'; }
     });
-
-    // ── API calls ─────────────────────────────────────────
-    // These call /api/tone-check and /api/microcopy-gen
-    // Connect these endpoints to your backend or Claude API integration.
-
-    async function runToneCheck(copy) {
-      const res = await fetch('/api/tone-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ copy })
-      });
-      if (!res.ok) throw new Error('API error');
-      const data = await res.json();
-      return formatToneReport(data);
-    }
-
-    async function runMicroGen({ surface, flow, moment, tone }) {
-      const res = await fetch('/api/microcopy-gen', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ surface, flow, moment, tone })
-      });
-      if (!res.ok) throw new Error('API error');
-      const data = await res.json();
-      return formatMicroOutput(data);
-    }
 
     // ── Formatters ────────────────────────────────────────
-    // These expect a structured JSON response from the API.
-    // Adapt to match your actual API response shape.
 
     function formatToneReport(data) {
-      const verdictClass = {
-        'Pass': 'verdict-pass',
-        'Fail': 'verdict-fail',
-        'Pass with notes': 'verdict-notes'
-      }[data.verdict] || 'verdict-notes';
-
+      const verdictClass = { 'Pass': 'verdict-pass', 'Fail': 'verdict-fail', 'Pass with notes': 'verdict-notes' }[data.verdict] || 'verdict-notes';
       let issueRows = '';
       if (data.issues && data.issues.length) {
-        issueRows = data.issues.map((issue, i) => `
-          <tr>
-            <td>${i + 1}</td>
-            <td>${escHtml(issue.rule)}</td>
-            <td><code>${escHtml(issue.copy)}</code></td>
-            <td>${escHtml(issue.fix)}</td>
-          </tr>`).join('');
+        issueRows = data.issues.map((issue, i) => `<tr><td>${i + 1}</td><td>${escHtml(issue.rule)}</td><td><code>${escHtml(issue.copy)}</code></td><td>${escHtml(issue.fix)}</td></tr>`).join('');
       } else {
         issueRows = '<tr><td colspan="4" style="color:var(--grey-400);padding:12px">No issues found.</td></tr>';
       }
-
       const worksList = data.whatWorks ? `<li>${escHtml(data.whatWorks)}</li>` : '';
-
       return `
-        <div class="report-section">
-          <span class="report-section-title">Overall verdict</span>
-          <span class="verdict ${verdictClass}">${escHtml(data.verdict)}</span>
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Copy reviewed</div>
-          <p style="color:var(--grey-600);font-size:14px">${escHtml(data.copyReviewed)}</p>
-        </div>
-
+        <div class="report-section"><span class="report-section-title">Overall verdict</span><span class="verdict ${verdictClass}">${escHtml(data.verdict)}</span></div>
         <div class="report-section">
           <div class="report-section-title">Issues found</div>
-          <table class="report-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Rule broken</th>
-                <th>Copy flagged</th>
-                <th>Suggested fix</th>
-              </tr>
-            </thead>
-            <tbody>${issueRows}</tbody>
-          </table>
+          <table class="report-table"><thead><tr><th>#</th><th>Rule broken</th><th>Copy flagged</th><th>Suggested fix</th></tr></thead><tbody>${issueRows}</tbody></table>
         </div>
-
         <div class="report-section">
           <div class="report-section-title">What works well</div>
           <ul class="rules-list">${worksList || '<li style="color:var(--grey-400)">Nothing noted.</li>'}</ul>
         </div>
-
         <div class="report-section">
           <div class="report-section-title">Revised version</div>
           <div class="revised-block">${escHtml(data.revised)}</div>
-        </div>
-      `;
+        </div>`;
     }
 
     function formatMicroOutput(data) {
@@ -691,333 +614,70 @@
           <div class="copy-block-label">${escHtml(c.label)}</div>
           <div class="copy-block-text ${c.isCta ? 'cta' : ''}">${escHtml(c.text)}</div>
         </div>`).join('');
-
       const rulesList = (data.rulesApplied || []).map(r => `<li>${escHtml(r)}</li>`).join('');
       const notesList = data.notes ? `<li>${escHtml(data.notes)}</li>` : '';
-
       return `
-        <div style="margin-bottom:8px;font-size:13px;color:var(--grey-600)">
-          <strong>Surface:</strong> ${escHtml(data.surface)} &nbsp;·&nbsp;
-          <strong>Flow:</strong> ${escHtml(data.flow)} &nbsp;·&nbsp;
-          <strong>Moment:</strong> ${escHtml(data.moment)}
-        </div>
-
-        <hr style="border:none;border-top:1px solid var(--grey-200);margin:16px 0 20px" />
-
         ${components}
-
         <hr style="border:none;border-top:1px solid var(--grey-200);margin:20px 0 16px" />
-
-        <div class="report-section">
-          <div class="report-section-title">Rules applied</div>
-          <ul class="rules-list">${rulesList || '<li style="color:var(--grey-400)">None listed.</li>'}</ul>
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Notes</div>
-          <ul class="notes-list">${notesList || '<li style="color:var(--grey-400)">None.</li>'}</ul>
-        </div>
-      `;
-    }
-
-    // ── Copy reviewer ─────────────────────────────────────
-    document.getElementById('review-submit').addEventListener('click', async () => {
-      const copy    = document.getElementById('review-copy').value.trim();
-      if (!copy) return;
-
-      const surface         = document.getElementById('review-surface').value.trim();
-      const market          = document.getElementById('review-market').value.trim();
-      const context         = document.getElementById('review-context').value.trim();
-      const outcomeControlled = document.getElementById('review-outcome').value.trim();
-
-      const btn = document.getElementById('review-submit');
-      btn.innerHTML = '<span class="spinner"></span>Reviewing…';
-      btn.disabled = true;
-
-      const output = document.getElementById('review-output');
-      const result = document.getElementById('review-result');
-      output.classList.remove('visible');
-
-      try {
-        const report = await runCopyReview({ copy, surface, market, context, outcomeControlled });
-        result.innerHTML = report;
-        output.classList.add('visible');
-      } catch (err) {
-        console.error('Copy review error:', err);
-        result.textContent = 'Something went wrong: ' + err.message;
-        output.classList.add('visible');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = 'Review copy';
-      }
-    });
-
-    async function runCopyReview({ copy, surface, market, context, outcomeControlled }) {
-      const res = await fetch('/api/copy-review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ copy, surface, market, context, outcomeControlled })
-      });
-      if (!res.ok) throw new Error('API error');
-      const data = await res.json();
-      return formatCopyReview(data);
+        <div class="report-section"><div class="report-section-title">Rules applied</div><ul class="rules-list">${rulesList || '<li style="color:var(--grey-400)">None listed.</li>'}</ul></div>
+        <div class="report-section"><div class="report-section-title">Notes</div><ul class="notes-list">${notesList || '<li style="color:var(--grey-400)">None.</li>'}</ul></div>`;
     }
 
     function formatCopyReview(data) {
-      const verdictClass = {
-        'Pass': 'verdict-pass',
-        'Fail': 'verdict-fail',
-        'Pass with notes': 'verdict-notes'
-      }[data.verdict] || 'verdict-notes';
-
-      // Meta row
-      const meta = [
-        data.surface ? `<strong>Surface:</strong> ${escHtml(data.surface)}` : null,
-        data.market  ? `<strong>Market:</strong> ${escHtml(data.market)}` : null,
-        data.context ? `<strong>Context:</strong> ${escHtml(data.context)}` : null,
-      ].filter(Boolean).join(' &nbsp;·&nbsp; ');
-
-      // Tone match
+      const verdictClass = { 'Pass': 'verdict-pass', 'Fail': 'verdict-fail', 'Pass with notes': 'verdict-notes' }[data.verdict] || 'verdict-notes';
       const toneRow = data.expectedTone ? `
         <div class="report-section">
           <div class="report-section-title">Expected tone</div>
-          <p>${escHtml(data.expectedTone)} &nbsp;
-            ${data.toneMatch
-              ? '<span class="verdict verdict-pass">Tone match</span>'
-              : `<span class="verdict verdict-fail">Tone mismatch</span>`}
-          </p>
-          ${!data.toneMatch && data.toneMismatch
-            ? `<p style="margin-top:6px;color:var(--grey-600);font-size:13px">${escHtml(data.toneMismatch)}</p>`
-            : ''}
+          <p>${escHtml(data.expectedTone)} &nbsp;${data.toneMatch ? '<span class="verdict verdict-pass">Tone match</span>' : '<span class="verdict verdict-fail">Tone mismatch</span>'}</p>
+          ${!data.toneMatch && data.toneMismatch ? `<p style="margin-top:6px;color:var(--grey-600);font-size:13px">${escHtml(data.toneMismatch)}</p>` : ''}
         </div>` : '';
-
-      // Issues table
       let issueRows = '';
       if (data.issues && data.issues.length) {
-        issueRows = data.issues.map((issue, i) => `
-          <tr>
-            <td>${i + 1}</td>
-            <td><strong>${escHtml(issue.rule)}</strong><br><span style="color:var(--grey-600);font-size:12px">${escHtml(issue.description)}</span></td>
-            <td><code>${escHtml(issue.original)}</code></td>
-            <td>${escHtml(issue.fix)}</td>
-            <td style="color:var(--grey-600);font-size:12px">${escHtml(issue.why)}</td>
-          </tr>`).join('');
+        issueRows = data.issues.map((issue, i) => `<tr><td>${i + 1}</td><td><strong>${escHtml(issue.rule)}</strong><br><span style="color:var(--grey-600);font-size:12px">${escHtml(issue.description)}</span></td><td><code>${escHtml(issue.original)}</code></td><td>${escHtml(issue.fix)}</td><td style="color:var(--grey-600);font-size:12px">${escHtml(issue.why)}</td></tr>`).join('');
       } else {
         issueRows = '<tr><td colspan="5" style="color:var(--grey-400);padding:12px">No issues found.</td></tr>';
       }
-
-      // UI recommendations
       let uiSection = '';
       if (data.uiRecommendations && data.uiRecommendations.length) {
-        const uiItems = data.uiRecommendations.map(r => `
-          <div style="margin-bottom:16px;padding:14px;background:var(--grey-100);border-radius:var(--radius)">
-            <p style="font-size:13px;font-weight:600;margin-bottom:4px">${escHtml(r.recommendation)}</p>
-            <p style="font-size:13px;color:var(--grey-600);margin-bottom:4px">${escHtml(r.problem)}</p>
-            <p style="font-size:12px;color:var(--grey-400)">${escHtml(r.reason)}</p>
-          </div>`).join('');
-
-        uiSection = `
-          <div class="report-section">
-            <div class="report-section-title">UI recommendations</div>
-            ${uiItems}
-          </div>`;
+        const uiItems = data.uiRecommendations.map(r => `<div style="margin-bottom:14px;padding:14px;background:var(--grey-100);border-radius:var(--radius)"><p style="font-size:13px;font-weight:600;margin-bottom:4px">${escHtml(r.recommendation)}</p><p style="font-size:13px;color:var(--grey-600);margin-bottom:4px">${escHtml(r.problem)}</p><p style="font-size:12px;color:var(--grey-400)">${escHtml(r.reason)}</p></div>`).join('');
+        uiSection = `<div class="report-section"><div class="report-section-title">UI recommendations</div>${uiItems}</div>`;
       }
-
       return `
-        <div class="report-section">
-          <span class="report-section-title">Overall verdict</span>
-          <span class="verdict ${verdictClass}">${escHtml(data.verdict)}</span>
-        </div>
-
-        ${meta ? `<div class="report-section"><p style="font-size:13px;color:var(--grey-600)">${meta}</p></div>` : ''}
-
+        <div class="report-section"><span class="report-section-title">Overall verdict</span><span class="verdict ${verdictClass}">${escHtml(data.verdict)}</span></div>
         ${toneRow}
-
         <div class="report-section">
           <div class="report-section-title">Issues found</div>
-          <table class="report-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Rule</th>
-                <th>Original</th>
-                <th>Fix</th>
-                <th>Why</th>
-              </tr>
-            </thead>
-            <tbody>${issueRows}</tbody>
-          </table>
+          <table class="report-table"><thead><tr><th>#</th><th>Rule</th><th>Original</th><th>Fix</th><th>Why</th></tr></thead><tbody>${issueRows}</tbody></table>
         </div>
-
         ${uiSection}
-
-        <div class="report-section">
-          <div class="report-section-title">Clean version</div>
-          <div class="revised-block">${escHtml(data.cleanVersion)}</div>
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Summary</div>
-          <p style="font-size:14px;color:var(--grey-600)">${escHtml(data.summary)}</p>
-        </div>
-      `;
-    }
-
-    document.getElementById('glossary-submit').dataset.label = 'Validate terms';
-
-    // ── Glossary validator ────────────────────────────────
-    document.getElementById('glossary-submit').addEventListener('click', async () => {
-      const copy    = document.getElementById('glossary-copy').value.trim();
-      if (!copy) return;
-
-      const surface = document.getElementById('glossary-surface').value.trim();
-      const market  = document.getElementById('glossary-market').value.trim();
-
-      const btn = document.getElementById('glossary-submit');
-      btn.innerHTML = '<span class="spinner"></span>Validating…';
-      btn.disabled = true;
-
-      const output = document.getElementById('glossary-output');
-      const result = document.getElementById('glossary-result');
-      output.classList.remove('visible');
-
-      try {
-        const report = await runGlossaryCheck({ copy, surface, market });
-        result.innerHTML = report;
-        output.classList.add('visible');
-      } catch (err) {
-        result.textContent = 'Something went wrong. Please try again.';
-        output.classList.add('visible');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = 'Validate terms';
-      }
-    });
-
-    async function runGlossaryCheck({ copy, surface, market }) {
-      const res = await fetch('/api/glossary-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ copy, surface, market })
-      });
-      if (!res.ok) throw new Error('API error');
-      const data = await res.json();
-      return formatGlossaryReport(data);
+        <div class="report-section"><div class="report-section-title">Clean version</div><div class="revised-block">${escHtml(data.cleanVersion)}</div></div>
+        <div class="report-section"><div class="report-section-title">Summary</div><p style="font-size:14px;color:var(--grey-600)">${escHtml(data.summary)}</p></div>`;
     }
 
     function formatGlossaryReport(data) {
-      const verdictClass = {
-        'Pass': 'verdict-pass',
-        'Fail': 'verdict-fail',
-        'Pass with notes': 'verdict-notes'
-      }[data.verdict] || 'verdict-notes';
-
+      const verdictClass = { 'Pass': 'verdict-pass', 'Fail': 'verdict-fail', 'Pass with notes': 'verdict-notes' }[data.verdict] || 'verdict-notes';
       function issueTable(items, columns, rowFn) {
         if (!items || !items.length) return '<p style="color:var(--grey-400);font-size:13px">None found.</p>';
         const headers = columns.map(c => `<th>${c}</th>`).join('');
-        const rows = items.map(rowFn).join('');
-        return `<table class="report-table"><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+        return `<table class="report-table"><thead><tr>${headers}</tr></thead><tbody>${items.map(rowFn).join('')}</tbody></table>`;
       }
-
-      const bannedTable = issueTable(
-        data.bannedTerms,
-        ['Found', 'Use instead', 'Context'],
-        r => `<tr><td><code>${escHtml(r.found)}</code></td><td><strong>${escHtml(r.approved)}</strong></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.context)}</td></tr>`
-      );
-
-      const capTable = issueTable(
-        data.capitalisationIssues,
-        ['Term', 'Issue', 'Fix'],
-        r => `<tr><td><code>${escHtml(r.term)}</code></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.issue)}</td><td>${escHtml(r.fix)}</td></tr>`
-      );
-
-      const brandTable = issueTable(
-        data.brandNameIssues,
-        ['Found', 'Correct spelling', 'Context'],
-        r => `<tr><td><code>${escHtml(r.found)}</code></td><td><strong>${escHtml(r.approved)}</strong></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.context)}</td></tr>`
-      );
-
-      const conflictTable = issueTable(
-        data.crossSurfaceConflicts,
-        ['Concept', 'Conflict', 'Approved term'],
-        r => `<tr><td><strong>${escHtml(r.concept)}</strong></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.conflict)}</td><td>${escHtml(r.approvedTerm)}</td></tr>`
-      );
-
-      const clarityTable = issueTable(
-        data.clarityFlags,
-        ['Term', 'Issue', 'Plain language alternative'],
-        r => `<tr><td><code>${escHtml(r.term)}</code></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.issue)}</td><td>${escHtml(r.suggestion)}</td></tr>`
-      );
-
-      const locTable = issueTable(
-        data.localisationConflicts,
-        ['Rule', 'Found', 'Fix'],
-        r => `<tr><td style="color:var(--grey-600);font-size:12px">${escHtml(r.rule)}</td><td><code>${escHtml(r.found)}</code></td><td>${escHtml(r.fix)}</td></tr>`
-      );
-
-      const meta = [
-        data.surface ? `<strong>Surface:</strong> ${escHtml(data.surface)}` : null,
-        data.market  ? `<strong>Market:</strong> ${escHtml(data.market)}` : null,
-      ].filter(Boolean).join(' &nbsp;·&nbsp; ');
-
       return `
-        <div class="report-section">
-          <span class="report-section-title">Overall verdict</span>
-          <span class="verdict ${verdictClass}">${escHtml(data.verdict)}</span>
-        </div>
-
-        ${meta ? `<div class="report-section"><p style="font-size:13px;color:var(--grey-600)">${meta}</p></div>` : ''}
-
-        <div class="report-section">
-          <div class="report-section-title">Banned terms</div>
-          ${bannedTable}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Capitalisation issues</div>
-          ${capTable}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Brand name issues</div>
-          ${brandTable}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Cross-surface conflicts</div>
-          ${conflictTable}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Clarity flags</div>
-          ${clarityTable}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Localisation conflicts</div>
-          ${locTable}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Clean version</div>
-          <div class="revised-block">${escHtml(data.cleanVersion)}</div>
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Summary</div>
-          <p style="font-size:14px;color:var(--grey-600)">${escHtml(data.summary)}</p>
-        </div>
-      `;
+        <div class="report-section"><span class="report-section-title">Overall verdict</span><span class="verdict ${verdictClass}">${escHtml(data.verdict)}</span></div>
+        <div class="report-section"><div class="report-section-title">Banned terms</div>${issueTable(data.bannedTerms, ['Found', 'Use instead', 'Context'], r => `<tr><td><code>${escHtml(r.found)}</code></td><td><strong>${escHtml(r.approved)}</strong></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.context)}</td></tr>`)}</div>
+        <div class="report-section"><div class="report-section-title">Capitalisation issues</div>${issueTable(data.capitalisationIssues, ['Term', 'Issue', 'Fix'], r => `<tr><td><code>${escHtml(r.term)}</code></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.issue)}</td><td>${escHtml(r.fix)}</td></tr>`)}</div>
+        <div class="report-section"><div class="report-section-title">Brand name issues</div>${issueTable(data.brandNameIssues, ['Found', 'Correct spelling', 'Context'], r => `<tr><td><code>${escHtml(r.found)}</code></td><td><strong>${escHtml(r.approved)}</strong></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.context)}</td></tr>`)}</div>
+        <div class="report-section"><div class="report-section-title">Cross-surface conflicts</div>${issueTable(data.crossSurfaceConflicts, ['Concept', 'Conflict', 'Approved term'], r => `<tr><td><strong>${escHtml(r.concept)}</strong></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.conflict)}</td><td>${escHtml(r.approvedTerm)}</td></tr>`)}</div>
+        <div class="report-section"><div class="report-section-title">Clarity flags</div>${issueTable(data.clarityFlags, ['Term', 'Issue', 'Plain language alternative'], r => `<tr><td><code>${escHtml(r.term)}</code></td><td style="color:var(--grey-600);font-size:12px">${escHtml(r.issue)}</td><td>${escHtml(r.suggestion)}</td></tr>`)}</div>
+        <div class="report-section"><div class="report-section-title">Localisation conflicts</div>${issueTable(data.localisationConflicts, ['Rule', 'Found', 'Fix'], r => `<tr><td style="color:var(--grey-600);font-size:12px">${escHtml(r.rule)}</td><td><code>${escHtml(r.found)}</code></td><td>${escHtml(r.fix)}</td></tr>`)}</div>
+        <div class="report-section"><div class="report-section-title">Clean version</div><div class="revised-block">${escHtml(data.cleanVersion)}</div></div>
+        <div class="report-section"><div class="report-section-title">Summary</div><p style="font-size:14px;color:var(--grey-600)">${escHtml(data.summary)}</p></div>`;
     }
 
     function escHtml(str) {
       if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
+
   </script>
 
 </body>
