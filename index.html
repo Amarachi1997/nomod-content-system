@@ -167,6 +167,49 @@
     .rules-list, .notes-list { font-size: 13px; color: var(--grey-600); padding-left: 18px; }
     .rules-list li, .notes-list li { margin-bottom: 4px; }
 
+    /* ── Email UI components ── */
+    .email-type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    @media (max-width: 500px) { .email-type-grid { grid-template-columns: 1fr; } }
+
+    .email-type-card {
+      border: 1.5px solid var(--grey-200); border-radius: var(--radius);
+      padding: 12px 14px; cursor: pointer; background: var(--white);
+      text-align: left; font-family: var(--font); transition: border-color 0.15s, background 0.15s;
+    }
+    .email-type-card:hover { border-color: var(--black); }
+    .email-type-card.selected { border-color: var(--black); background: var(--grey-100); }
+    .email-type-label { font-size: 13px; font-weight: 600; color: var(--black); display: block; margin-bottom: 2px; }
+    .email-type-hint { font-size: 11px; color: var(--grey-400); display: block; }
+
+    .recipient-row, .mode-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .recipient-btn, .mode-btn {
+      border: 1.5px solid var(--grey-200); border-radius: 20px; padding: 6px 14px;
+      font-size: 13px; font-weight: 500; cursor: pointer; background: var(--white);
+      font-family: var(--font); color: var(--grey-600); transition: border-color 0.15s, color 0.15s;
+    }
+    .recipient-btn:hover, .mode-btn:hover { border-color: var(--black); color: var(--black); }
+    .recipient-btn.selected, .mode-btn.active { border-color: var(--black); color: var(--black); background: var(--grey-100); }
+
+    .btn-secondary {
+      background: var(--white); color: var(--black); border: 1.5px solid var(--grey-200);
+      padding: 10px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 500;
+      cursor: pointer; font-family: var(--font); transition: border-color 0.15s; white-space: nowrap;
+    }
+    .btn-secondary:hover { border-color: var(--black); }
+    .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* email output components */
+    .email-component { margin-bottom: 20px; }
+    .email-component-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--grey-400); margin-bottom: 6px; }
+    .email-component-text { font-size: 14px; color: var(--black); padding: 12px 14px; background: var(--grey-100); border-radius: var(--radius); white-space: pre-wrap; line-height: 1.6; }
+    .email-component-text.subject { font-weight: 600; font-size: 15px; }
+    .email-component-text.cta { font-weight: 600; display: inline-block; background: var(--black); color: var(--white); border-radius: var(--radius); padding: 10px 20px; }
+
+    .checklist-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .checklist-item { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 10px; border-radius: 20px; }
+    .checklist-item.pass { background: #e8f8ee; color: #1e8449; }
+    .checklist-item.fail { background: #fde8e8; color: #c0392b; }
+
     .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -288,14 +331,106 @@
       </div>
 
       <div class="tool-tabs" role="tablist">
-        <button class="tool-tab active" data-tool="generate">Generate copy</button>
+        <button class="tool-tab active" data-tool="email">Write email</button>
+        <button class="tool-tab" data-tool="generate">Generate copy</button>
         <button class="tool-tab" data-tool="review">Review copy</button>
         <button class="tool-tab" data-tool="tone">Check tone</button>
         <button class="tool-tab" data-tool="glossary">Validate terms</button>
       </div>
 
+      <!-- Write email -->
+      <div class="tool-panel active" id="tool-email">
+        <h2 class="panel-title">Write email</h2>
+        <p class="panel-desc">Fill in the brief and we'll generate or review email copy built to Nomod's standards.</p>
+
+        <!-- Email type -->
+        <div class="field">
+          <label>Email type</label>
+          <div class="email-type-grid">
+            <button class="email-type-card" data-type="Notification">
+              <span class="email-type-label">Notification</span>
+              <span class="email-type-hint">Service fee change, payout sent, account update</span>
+            </button>
+            <button class="email-type-card" data-type="Announcement">
+              <span class="email-type-label">Announcement</span>
+              <span class="email-type-hint">New feature, change to how something works</span>
+            </button>
+            <button class="email-type-card" data-type="Promotional">
+              <span class="email-type-label">Promotional</span>
+              <span class="email-type-hint">Membership discount, fee-free offer</span>
+            </button>
+            <button class="email-type-card" data-type="Update">
+              <span class="email-type-label">Update</span>
+              <span class="email-type-hint">Downtime, partner outage, scheduled maintenance</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Recipient -->
+        <div class="field">
+          <label>Recipient</label>
+          <div class="recipient-row">
+            <button class="recipient-btn" data-recipient="Merchant">Merchant</button>
+            <button class="recipient-btn" data-recipient="Customer">Customer</button>
+            <button class="recipient-btn" data-recipient="Internal">Internal (Nomod team)</button>
+          </div>
+        </div>
+
+        <!-- Linear ticket -->
+        <div class="field">
+          <label for="email-ticket-id">Linear ticket ID <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+          <div style="display:flex;gap:8px;align-items:flex-start;">
+            <input type="text" id="email-ticket-id" placeholder="e.g. ENG-1234 or NOD-567" style="flex:1;" />
+            <button class="btn-secondary" id="email-ticket-fetch">Fetch</button>
+          </div>
+          <p class="field-hint" id="ticket-fetch-status"></p>
+        </div>
+
+        <!-- Ticket summary (shown after fetch or as manual fallback) -->
+        <div class="field" id="ticket-summary-field" style="display:none;">
+          <label for="email-ticket-summary">Ticket context</label>
+          <textarea id="email-ticket-summary" style="min-height:100px;" placeholder="Ticket details will appear here after fetching. You can also paste them manually."></textarea>
+        </div>
+
+        <!-- Figma URL -->
+        <div class="field">
+          <label for="email-figma-url">Figma frame URL <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+          <input type="text" id="email-figma-url" placeholder="Paste the Figma frame URL here" />
+          <p class="field-hint">The email structure and layout from the frame will be used as context.</p>
+        </div>
+
+        <!-- Notes -->
+        <div class="field">
+          <label for="email-notes">Additional notes <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+          <textarea id="email-notes" style="min-height:80px;" placeholder="Anything else the writer should know — audience, urgency, specific requirements…"></textarea>
+        </div>
+
+        <!-- Mode toggle -->
+        <div class="field">
+          <label>What do you need?</label>
+          <div class="mode-row">
+            <button class="mode-btn active" data-mode="generate">Generate copy</button>
+            <button class="mode-btn" data-mode="review">Review existing copy</button>
+          </div>
+        </div>
+
+        <!-- Existing copy field (review mode only) -->
+        <div class="field" id="existing-copy-field" style="display:none;">
+          <label for="email-existing-copy">Paste the copy to review</label>
+          <textarea id="email-existing-copy" placeholder="Paste the full email copy here — subject line, body, CTA, footer…"></textarea>
+        </div>
+
+        <button class="btn-primary" id="email-submit">Generate email copy</button>
+
+        <div class="output" id="email-output">
+          <hr class="output-divider" />
+          <div class="output-label">Email copy</div>
+          <div class="output-content" id="email-result"></div>
+        </div>
+      </div>
+
       <!-- Generate copy -->
-      <div class="tool-panel active" id="tool-generate">
+      <div class="tool-panel" id="tool-generate">
         <h2 class="panel-title">Generate copy</h2>
         <p class="panel-desc">Describe the flow and moment and get ready-to-use copy built to Nomod's standards.</p>
         <div class="field field-prefilled">
@@ -580,6 +715,249 @@
         output.classList.add('visible');
       } finally { btn.disabled = false; btn.innerHTML = 'Validate terms'; }
     });
+
+    // ── Email panel state ─────────────────────────────────
+    let emailType = null;
+    let emailRecipient = null;
+    let emailMode = 'generate';
+
+    document.querySelectorAll('.email-type-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.email-type-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        emailType = card.dataset.type;
+      });
+    });
+
+    document.querySelectorAll('.recipient-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.recipient-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        emailRecipient = btn.dataset.recipient;
+      });
+    });
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        emailMode = btn.dataset.mode;
+        const existingField = document.getElementById('existing-copy-field');
+        const submitBtn = document.getElementById('email-submit');
+        if (emailMode === 'review') {
+          existingField.style.display = 'block';
+          submitBtn.innerHTML = 'Review email copy';
+        } else {
+          existingField.style.display = 'none';
+          submitBtn.innerHTML = 'Generate email copy';
+        }
+      });
+    });
+
+    // ── Linear ticket fetch ───────────────────────────────
+    document.getElementById('email-ticket-fetch').addEventListener('click', async () => {
+      const ticketId = document.getElementById('email-ticket-id').value.trim();
+      if (!ticketId) return;
+
+      const fetchBtn = document.getElementById('email-ticket-fetch');
+      const statusEl = document.getElementById('ticket-fetch-status');
+      const summaryField = document.getElementById('ticket-summary-field');
+      const summaryTextarea = document.getElementById('email-ticket-summary');
+
+      fetchBtn.disabled = true;
+      fetchBtn.textContent = 'Fetching…';
+      statusEl.textContent = '';
+
+      try {
+        const res = await fetch('/api/linear-fetch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticketId })
+        });
+
+        if (!res.ok) {
+          throw new Error('Could not fetch ticket');
+        }
+
+        const ticket = await res.json();
+
+        let summary = `Ticket: ${ticket.identifier} — ${ticket.title}\nStatus: ${ticket.status}`;
+        if (ticket.description) summary += `\n\nDescription:\n${ticket.description}`;
+        if (ticket.parent) summary += `\n\nParent ticket: ${ticket.parent.identifier} — ${ticket.parent.title}\n${ticket.parent.description}`;
+
+        summaryTextarea.value = summary;
+        summaryField.style.display = 'block';
+        statusEl.textContent = `Ticket ${ticket.identifier} fetched.`;
+        statusEl.style.color = '#1e8449';
+
+      } catch (err) {
+        summaryField.style.display = 'block';
+        summaryTextarea.placeholder = 'Could not fetch the ticket automatically. Paste the ticket details here instead.';
+        statusEl.textContent = 'Could not fetch the ticket. Paste the details manually below.';
+        statusEl.style.color = '#c0392b';
+      } finally {
+        fetchBtn.disabled = false;
+        fetchBtn.textContent = 'Fetch';
+      }
+    });
+
+    // ── Email writer ──────────────────────────────────────
+    document.getElementById('email-submit').addEventListener('click', async () => {
+      if (!emailType) {
+        alert('Please select an email type before continuing.');
+        return;
+      }
+
+      const market       = document.getElementById('badge-market').textContent || '';
+      const figmaUrl     = document.getElementById('email-figma-url').value.trim();
+      const ticketSummary = document.getElementById('email-ticket-summary').value.trim();
+      const notes        = document.getElementById('email-notes').value.trim();
+      const existingCopy = document.getElementById('email-existing-copy').value.trim();
+
+      if (emailMode === 'review' && !existingCopy) {
+        alert('Please paste the copy you want to review.');
+        return;
+      }
+
+      const btn = document.getElementById('email-submit');
+      btn.innerHTML = `<span class="spinner"></span>${emailMode === 'generate' ? 'Generating…' : 'Reviewing…'}`;
+      btn.disabled = true;
+
+      const output = document.getElementById('email-output');
+      const result = document.getElementById('email-result');
+      output.classList.remove('visible');
+
+      try {
+        const res = await fetch('/api/email-writer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: emailMode,
+            emailType,
+            market,
+            recipient: emailRecipient,
+            figmaUrl,
+            ticketSummary,
+            notes,
+            existingCopy
+          })
+        });
+
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        result.innerHTML = emailMode === 'generate' ? formatEmailGenerate(data) : formatEmailReview(data);
+        output.classList.add('visible');
+      } catch (err) {
+        result.textContent = 'Something went wrong. Please try again.';
+        output.classList.add('visible');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = emailMode === 'generate' ? 'Generate email copy' : 'Review email copy';
+      }
+    });
+
+    function formatEmailGenerate(data) {
+      const c = data.components || {};
+
+      function emailBlock(label, text, cls) {
+        if (!text) return '';
+        return `<div class="email-component">
+          <div class="email-component-label">${label}</div>
+          <div class="email-component-text ${cls || ''}">${escHtml(text)}</div>
+        </div>`;
+      }
+
+      const checklist = data.checklist || {};
+      const checklistHtml = Object.entries({
+        'No apology opener': checklist.noApologyOpener,
+        'Exclamation mark': checklist.exclamationMarkCheck,
+        'Outcome guarantee': checklist.outcomeGuaranteeCheck,
+        'Mental relaxer': checklist.mentalRelaxerCheck,
+        'UK English': checklist.ukEnglish,
+        'Capitalisation': checklist.capitalisationCheck
+      }).map(([label, pass]) => `
+        <span class="checklist-item ${pass ? 'pass' : 'fail'}">
+          ${pass ? '✓' : '✗'} ${label}
+        </span>`).join('');
+
+      const decisions = (data.copyDecisions || []).map(d => `<li>${escHtml(d)}</li>`).join('');
+
+      return `
+        <div style="margin-bottom:6px;font-size:13px;color:var(--grey-600)">
+          <strong>${escHtml(data.emailType || '')}</strong>${data.recipient ? ` &nbsp;·&nbsp; ${escHtml(data.recipient)}` : ''}
+        </div>
+        <hr style="border:none;border-top:1px solid var(--grey-200);margin:14px 0 20px" />
+
+        ${emailBlock('Subject line', c.subjectLine, 'subject')}
+        ${emailBlock('Heading', c.heading, '')}
+        ${emailBlock('Body', c.body, '')}
+        ${c.cta ? emailBlock('CTA', c.cta, 'cta') : ''}
+        ${emailBlock('Footer', c.footer, '')}
+
+        <hr style="border:none;border-top:1px solid var(--grey-200);margin:20px 0 16px" />
+
+        <div class="report-section">
+          <div class="report-section-title">Checklist</div>
+          <div class="checklist-row">${checklistHtml}</div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Copy decisions</div>
+          <ul class="rules-list">${decisions || '<li style="color:var(--grey-400)">None noted.</li>'}</ul>
+        </div>`;
+    }
+
+    function formatEmailReview(data) {
+      const verdictClass = { 'Pass': 'verdict-pass', 'Fail': 'verdict-fail', 'Pass with notes': 'verdict-notes' }[data.verdict] || 'verdict-notes';
+
+      let issueRows = '';
+      if (data.issues && data.issues.length) {
+        issueRows = data.issues.map((issue, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${escHtml(issue.rule)}</td>
+            <td><code>${escHtml(issue.original)}</code></td>
+            <td>${escHtml(issue.fix)}</td>
+            <td style="color:var(--grey-600);font-size:12px">${escHtml(issue.why)}</td>
+          </tr>`).join('');
+      } else {
+        issueRows = '<tr><td colspan="5" style="color:var(--grey-400);padding:12px">No issues found.</td></tr>';
+      }
+
+      const clean = data.cleanVersion || {};
+      function cleanBlock(label, text) {
+        if (!text) return '';
+        return `<div class="email-component"><div class="email-component-label">${label}</div><div class="email-component-text">${escHtml(text)}</div></div>`;
+      }
+
+      return `
+        <div class="report-section">
+          <span class="report-section-title">Overall verdict</span>
+          <span class="verdict ${verdictClass}">${escHtml(data.verdict)}</span>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Issues found</div>
+          <table class="report-table">
+            <thead><tr><th>#</th><th>Rule</th><th>Original</th><th>Fix</th><th>Why</th></tr></thead>
+            <tbody>${issueRows}</tbody>
+          </table>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Clean version</div>
+          ${cleanBlock('Subject line', clean.subjectLine)}
+          ${cleanBlock('Heading', clean.heading)}
+          ${cleanBlock('Body', clean.body)}
+          ${clean.cta ? cleanBlock('CTA', clean.cta) : ''}
+          ${cleanBlock('Footer', clean.footer)}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Summary</div>
+          <p style="font-size:14px;color:var(--grey-600)">${escHtml(data.summary)}</p>
+        </div>`;
+    }
 
     // ── Formatters ────────────────────────────────────────
 
