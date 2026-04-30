@@ -5,6 +5,7 @@
     "api/copy-review.js": { "maxDuration": 300 },
     "api/glossary-check.js": { "maxDuration": 300 },
     "api/email-writer.js": { "maxDuration": 300 },
-    "api/linear-fetch.js": { "maxDuration": 30 }
+    "api/linear-fetch.js": { "maxDuration": 30 },
+    "api/infer-email-type.js": { "maxDuration": 30 }
   }
 }

@@ -801,6 +801,45 @@
         statusEl.textContent = `Ticket ${ticket.identifier} fetched.`;
         statusEl.style.color = '#1e8449';
 
+        // Silently infer email type, recipient and market from ticket content
+        try {
+          const inferRes = await fetch('/api/infer-email-type', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticketSummary: summary })
+          });
+          if (inferRes.ok) {
+            const inferred = await inferRes.json();
+
+            // Pre-select email type card
+            if (inferred.emailType) {
+              document.querySelectorAll('.email-type-card').forEach(c => c.classList.remove('selected'));
+              const matchingCard = document.querySelector(`.email-type-card[data-type="${inferred.emailType}"]`);
+              if (matchingCard) {
+                matchingCard.classList.add('selected');
+                emailType = inferred.emailType;
+              }
+            }
+
+            // Pre-select recipient
+            if (inferred.recipient) {
+              document.querySelectorAll('.recipient-btn').forEach(b => b.classList.remove('selected'));
+              const matchingBtn = document.querySelector(`.recipient-btn[data-recipient="${inferred.recipient}"]`);
+              if (matchingBtn) {
+                matchingBtn.classList.add('selected');
+                emailRecipient = inferred.recipient;
+              }
+            }
+
+            // Pre-select market in the picker if still on picker, or update badge
+            if (inferred.market && inferred.market !== 'Unknown') {
+              selectedMarket = inferred.market;
+            }
+          }
+        } catch (inferErr) {
+          // Inference failure is silent — user can still select manually
+        }
+
       } catch (err) {
         summaryField.style.display = 'block';
         summaryTextarea.placeholder = 'Could not fetch the ticket automatically. Paste the ticket details here instead.';
