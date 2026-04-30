@@ -283,7 +283,6 @@
           <span class="surface-card-label">Nomod Docs</span>
           <span class="surface-card-hint">Guides, how-tos, references</span>
         </button>
-        <button class="surface-card" data-surface="Spec or ticket">
           <span class="surface-card-icon">🗂️</span>
           <span class="surface-card-label">Spec or ticket</span>
           <span class="surface-card-hint">Figma, Jira, Notion, PRD</span>
@@ -332,11 +331,43 @@
 
       <div class="tool-tabs" role="tablist">
         <button class="tool-tab active" data-tool="email">Write email</button>
+        <button class="tool-tab" data-tool="docs">Write docs</button>
         <button class="tool-tab" data-tool="generate">Generate copy</button>
         <button class="tool-tab" data-tool="review">Review copy</button>
         <button class="tool-tab" data-tool="tone">Check tone</button>
         <button class="tool-tab" data-tool="glossary">Validate terms</button>
       </div>
+
+        <!-- Nomod Docs -->
+        <div class="tool-panel" id="tool-docs">
+          <h2 class="panel-title">Write docs</h2>
+          <p class="panel-desc">Docs are written directly in Claude — paste your brief below and open a new chat with Claude to get started.</p>
+
+          <div class="field">
+            <label for="docs-ticket-url">Linear ticket URL</label>
+            <input type="text" id="docs-ticket-url" placeholder="https://linear.app/nomod/issue/ENG-1234/..." />
+          </div>
+
+          <div class="field">
+            <label for="docs-figma-url">Figma file URL</label>
+            <input type="text" id="docs-figma-url" placeholder="https://www.figma.com/design/..." />
+          </div>
+
+          <div class="field">
+            <label for="docs-notes">Additional notes <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+            <textarea id="docs-notes" style="min-height:80px;" placeholder="Anything Claude should know — scope, audience, related features…"></textarea>
+          </div>
+
+          <button class="btn-primary" id="docs-copy-brief">Copy brief</button>
+          <p class="field-hint" id="docs-copy-status" style="margin-top:10px;"></p>
+
+          <div style="margin-top:28px;padding:20px;background:var(--grey-100);border-radius:var(--radius);">
+            <p style="font-size:13px;font-weight:600;margin-bottom:8px;">How it works</p>
+            <p style="font-size:13px;color:var(--grey-600);line-height:1.6;">1. Fill in the fields above and click <strong>Copy brief</strong></p>
+            <p style="font-size:13px;color:var(--grey-600);line-height:1.6;">2. Open a new chat with Claude at <a href="https://claude.ai" target="_blank" style="color:var(--black);">claude.ai</a></p>
+            <p style="font-size:13px;color:var(--grey-600);line-height:1.6;">3. Paste the brief — Claude will read the ticket, read the Figma file, propose the doc structure, and create the Google Docs directly in Drive once you confirm</p>
+          </div>
+        </div>
 
         <!-- Write email -->
         <div class="tool-panel active" id="tool-email">
@@ -594,27 +625,33 @@
         marketBadge.style.display = 'none';
       }
 
-      // Switch screens — always land on Write email tab
+      // Switch screens and show correct tabs based on surface
       document.getElementById('picker-screen').classList.add('hidden');
       document.getElementById('tools-screen').classList.add('active');
       document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
-      document.querySelector('.tool-tab[data-tool="email"]').classList.add('active');
-      document.getElementById('tool-email').classList.add('active');
 
-      // Hide Generate copy tab for Email surface — the Write email panel already handles both modes
+      const emailTab    = document.querySelector('.tool-tab[data-tool="email"]');
+      const docsTab     = document.querySelector('.tool-tab[data-tool="docs"]');
       const generateTab = document.querySelector('.tool-tab[data-tool="generate"]');
-      const emailTab = document.querySelector('.tool-tab[data-tool="email"]');
+
       if (surface === 'Email') {
+        emailTab.style.display    = '';
+        docsTab.style.display     = 'none';
         generateTab.style.display = 'none';
-        emailTab.style.display = '';
+        emailTab.classList.add('active');
+        document.getElementById('tool-email').classList.add('active');
+      } else if (surface === 'Nomod Docs') {
+        emailTab.style.display    = 'none';
+        docsTab.style.display     = '';
+        generateTab.style.display = 'none';
+        docsTab.classList.add('active');
+        document.getElementById('tool-docs').classList.add('active');
       } else {
+        emailTab.style.display    = 'none';
+        docsTab.style.display     = 'none';
         generateTab.style.display = '';
-        emailTab.style.display = 'none';
-        // Land on Generate copy for non-email surfaces
-        document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
-        document.querySelector('.tool-tab[data-tool="generate"]').classList.add('active');
+        generateTab.classList.add('active');
         document.getElementById('tool-generate').classList.add('active');
       }
     });
@@ -979,6 +1016,35 @@
           <p style="font-size:14px;color:var(--grey-600)">${escHtml(data.summary)}</p>
         </div>`;
     }
+
+    // ── Nomod Docs — copy brief ───────────────────────────
+    document.getElementById('docs-copy-brief').addEventListener('click', () => {
+      const ticketUrl = document.getElementById('docs-ticket-url').value.trim();
+      const figmaUrl  = document.getElementById('docs-figma-url').value.trim();
+      const notes     = document.getElementById('docs-notes').value.trim();
+      const status    = document.getElementById('docs-copy-status');
+
+      if (!ticketUrl && !figmaUrl) {
+        status.textContent = 'Add at least a Linear ticket URL or Figma file URL before copying.';
+        status.style.color = '#c0392b';
+        return;
+      }
+
+      const brief = [
+        `I need you to write Nomod Docs for the following. Please follow the two-stage process: first propose the sub-article structure, then draft the full content and create the Google Docs in Drive once I confirm.`,
+        ticketUrl ? `Linear ticket: ${ticketUrl}` : null,
+        figmaUrl  ? `Figma file: ${figmaUrl}` : null,
+        notes     ? `Additional context: ${notes}` : null,
+      ].filter(Boolean).join('\n\n');
+
+      navigator.clipboard.writeText(brief).then(() => {
+        status.textContent = 'Brief copied. Paste it into a new Claude chat to get started.';
+        status.style.color = '#1e8449';
+      }).catch(() => {
+        status.textContent = 'Could not copy automatically. Select the text below and copy it manually.';
+        status.style.color = '#c0392b';
+      });
+    });
 
     // ── Formatters ────────────────────────────────────────
 
