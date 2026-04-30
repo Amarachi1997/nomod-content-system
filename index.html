@@ -338,99 +338,90 @@
         <button class="tool-tab" data-tool="glossary">Validate terms</button>
       </div>
 
-      <!-- Write email -->
-      <div class="tool-panel active" id="tool-email">
-        <h2 class="panel-title">Write email</h2>
-        <p class="panel-desc">Fill in the brief and we'll generate or review email copy built to Nomod's standards.</p>
+        <!-- Write email -->
+        <div class="tool-panel active" id="tool-email">
+          <h2 class="panel-title">Write email</h2>
+          <p class="panel-desc">Fill in the brief and get email copy built to Nomod's standards.</p>
 
-        <!-- Email type -->
-        <div class="field">
-          <label>Email type</label>
-          <div class="email-type-grid">
-            <button class="email-type-card" data-type="Notification">
-              <span class="email-type-label">Notification</span>
-              <span class="email-type-hint">Service fee change, payout sent, account update</span>
-            </button>
-            <button class="email-type-card" data-type="Announcement">
-              <span class="email-type-label">Announcement</span>
-              <span class="email-type-hint">New feature, change to how something works</span>
-            </button>
-            <button class="email-type-card" data-type="Promotional">
-              <span class="email-type-label">Promotional</span>
-              <span class="email-type-hint">Membership discount, fee-free offer</span>
-            </button>
-            <button class="email-type-card" data-type="Update">
-              <span class="email-type-label">Update</span>
-              <span class="email-type-hint">Downtime, partner outage, scheduled maintenance</span>
-            </button>
+          <div class="field">
+            <label>Email type</label>
+            <div class="email-type-grid">
+              <button class="email-type-card" data-type="Notification">
+                <span class="email-type-label">Notification</span>
+                <span class="email-type-hint">Service fee change, payout sent, account update</span>
+              </button>
+              <button class="email-type-card" data-type="Announcement">
+                <span class="email-type-label">Announcement</span>
+                <span class="email-type-hint">New feature, change to how something works</span>
+              </button>
+              <button class="email-type-card" data-type="Promotional">
+                <span class="email-type-label">Promotional</span>
+                <span class="email-type-hint">Membership discount, fee-free offer</span>
+              </button>
+              <button class="email-type-card" data-type="Update">
+                <span class="email-type-label">Update</span>
+                <span class="email-type-hint">Downtime, partner outage, scheduled maintenance</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Recipient</label>
+            <div class="recipient-row">
+              <button class="recipient-btn" data-recipient="Merchant">Merchant</button>
+              <button class="recipient-btn" data-recipient="Customer">Customer</button>
+              <button class="recipient-btn" data-recipient="Internal">Internal (Nomod team)</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="email-ticket-id">Linear ticket <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <input type="text" id="email-ticket-id" placeholder="Paste the Linear ticket URL or ID, e.g. NOD-123" style="flex:1;" />
+              <button class="btn-secondary" id="email-ticket-fetch">Fetch</button>
+            </div>
+            <p class="field-hint" id="ticket-fetch-status"></p>
+          </div>
+
+          <div class="field" id="ticket-summary-field" style="display:none;">
+            <label for="email-ticket-summary">Ticket context</label>
+            <textarea id="email-ticket-summary" style="min-height:100px;" placeholder="Ticket details will appear here after fetching. You can also paste them manually."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="email-figma-url">Figma frame URL <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+            <input type="text" id="email-figma-url" placeholder="Paste the Figma frame URL here" />
+          </div>
+
+          <div class="field">
+            <label for="email-notes">Additional notes <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+            <textarea id="email-notes" style="min-height:80px;" placeholder="Anything else the writer should know…"></textarea>
+          </div>
+
+          <div class="field">
+            <label>What do you need?</label>
+            <div class="mode-row">
+              <button class="mode-btn active" data-mode="generate">Write email</button>
+              <button class="mode-btn" data-mode="review">Review copy</button>
+            </div>
+          </div>
+
+          <div class="field" id="existing-copy-field" style="display:none;">
+            <label for="email-existing-copy">Paste the copy to review</label>
+            <textarea id="email-existing-copy" placeholder="Paste the full email copy here — subject line, body, CTA…"></textarea>
+          </div>
+
+          <button class="btn-primary" id="email-submit">Write email</button>
+
+          <div class="output" id="email-output">
+            <hr class="output-divider" />
+            <div class="output-label">Email copy</div>
+            <div class="output-content" id="email-result"></div>
           </div>
         </div>
 
-        <!-- Recipient -->
-        <div class="field">
-          <label>Recipient</label>
-          <div class="recipient-row">
-            <button class="recipient-btn" data-recipient="Merchant">Merchant</button>
-            <button class="recipient-btn" data-recipient="Customer">Customer</button>
-            <button class="recipient-btn" data-recipient="Internal">Internal (Nomod team)</button>
-          </div>
-        </div>
-
-        <!-- Linear ticket -->
-        <div class="field">
-          <label for="email-ticket-id">Linear ticket <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
-          <div style="display:flex;gap:8px;align-items:flex-start;">
-            <input type="text" id="email-ticket-id" placeholder="Paste the Linear ticket URL or ID, e.g. NOD-123" style="flex:1;" />
-            <button class="btn-secondary" id="email-ticket-fetch">Fetch</button>
-          </div>
-          <p class="field-hint" id="ticket-fetch-status"></p>
-        </div>
-
-        <!-- Ticket summary (shown after fetch or as manual fallback) -->
-        <div class="field" id="ticket-summary-field" style="display:none;">
-          <label for="email-ticket-summary">Ticket context</label>
-          <textarea id="email-ticket-summary" style="min-height:100px;" placeholder="Ticket details will appear here after fetching. You can also paste them manually."></textarea>
-        </div>
-
-        <!-- Figma URL -->
-        <div class="field">
-          <label for="email-figma-url">Figma frame URL <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
-          <input type="text" id="email-figma-url" placeholder="Paste the Figma frame URL here" />
-          <p class="field-hint">The email structure and layout from the frame will be used as context.</p>
-        </div>
-
-        <!-- Notes -->
-        <div class="field">
-          <label for="email-notes">Additional notes <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
-          <textarea id="email-notes" style="min-height:80px;" placeholder="Anything else the writer should know — audience, urgency, specific requirements…"></textarea>
-        </div>
-
-        <!-- Mode toggle -->
-        <div class="field">
-          <label>What do you need?</label>
-          <div class="mode-row">
-            <button class="mode-btn active" data-mode="generate">Generate copy</button>
-            <button class="mode-btn" data-mode="review">Review existing copy</button>
-          </div>
-        </div>
-
-        <!-- Existing copy field (review mode only) -->
-        <div class="field" id="existing-copy-field" style="display:none;">
-          <label for="email-existing-copy">Paste the copy to review</label>
-          <textarea id="email-existing-copy" placeholder="Paste the full email copy here — subject line, body, CTA, footer…"></textarea>
-        </div>
-
-        <button class="btn-primary" id="email-submit">Generate email copy</button>
-
-        <div class="output" id="email-output">
-          <hr class="output-divider" />
-          <div class="output-label">Email copy</div>
-          <div class="output-content" id="email-result"></div>
-        </div>
-      </div>
-
-      <!-- Generate copy -->
-      <div class="tool-panel" id="tool-generate">
+        <!-- Generate copy -->
+        <div class="tool-panel" id="tool-generate">
         <h2 class="panel-title">Generate copy</h2>
         <p class="panel-desc">Describe the flow and moment and get ready-to-use copy built to Nomod's standards.</p>
         <div class="field field-prefilled">
@@ -746,10 +737,10 @@
         const submitBtn = document.getElementById('email-submit');
         if (emailMode === 'review') {
           existingField.style.display = 'block';
-          submitBtn.innerHTML = 'Review email copy';
+          submitBtn.innerHTML = 'Review copy';
         } else {
           existingField.style.display = 'none';
-          submitBtn.innerHTML = 'Generate email copy';
+          submitBtn.innerHTML = 'Write email';
         }
       });
     });
@@ -852,7 +843,7 @@
         output.classList.add('visible');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = emailMode === 'generate' ? 'Generate email copy' : 'Review email copy';
+        btn.innerHTML = emailMode === 'generate' ? 'Write email' : 'Review copy';
       }
     });
 
@@ -863,48 +854,19 @@
         if (!text) return '';
         return `<div class="email-component">
           <div class="email-component-label">${label}</div>
-          <div class="email-component-text ${cls || ''}">${escHtml(text)}</div>
+          <div class="email-component-text ${cls || ''}">${escHtml(text).replace(/\n\n/g, '</div><div class="email-component-text" style="margin-top:12px;">').replace(/\n/g, '<br>')}</div>
         </div>`;
       }
 
-      const checklist = data.checklist || {};
-      const checklistHtml = Object.entries({
-        'No apology opener': checklist.noApologyOpener,
-        'Exclamation mark': checklist.exclamationMarkCheck,
-        'Outcome guarantee': checklist.outcomeGuaranteeCheck,
-        'Mental relaxer': checklist.mentalRelaxerCheck,
-        'UK English': checklist.ukEnglish,
-        'Capitalisation': checklist.capitalisationCheck
-      }).map(([label, pass]) => `
-        <span class="checklist-item ${pass ? 'pass' : 'fail'}">
-          ${pass ? '✓' : '✗'} ${label}
-        </span>`).join('');
-
-      const decisions = (data.copyDecisions || []).map(d => `<li>${escHtml(d)}</li>`).join('');
+      const typeLabel = data.emailType ? `<span style="font-size:12px;color:var(--grey-400);display:block;margin-bottom:20px;">${escHtml(data.emailType)}${data.market && data.market !== 'Not specified' ? ' &nbsp;·&nbsp; ' + escHtml(data.market) : ''}</span>` : '';
 
       return `
-        <div style="margin-bottom:6px;font-size:13px;color:var(--grey-600)">
-          <strong>${escHtml(data.emailType || '')}</strong>${data.recipient ? ` &nbsp;·&nbsp; ${escHtml(data.recipient)}` : ''}
-        </div>
-        <hr style="border:none;border-top:1px solid var(--grey-200);margin:14px 0 20px" />
-
+        ${typeLabel}
         ${emailBlock('Subject line', c.subjectLine, 'subject')}
         ${emailBlock('Heading', c.heading, '')}
         ${emailBlock('Body', c.body, '')}
         ${c.cta ? emailBlock('CTA', c.cta, 'cta') : ''}
-        ${emailBlock('Footer', c.footer, '')}
-
-        <hr style="border:none;border-top:1px solid var(--grey-200);margin:20px 0 16px" />
-
-        <div class="report-section">
-          <div class="report-section-title">Checklist</div>
-          <div class="checklist-row">${checklistHtml}</div>
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Copy decisions</div>
-          <ul class="rules-list">${decisions || '<li style="color:var(--grey-400)">None noted.</li>'}</ul>
-        </div>`;
+      `;
     }
 
     function formatEmailReview(data) {
