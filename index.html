@@ -344,6 +344,20 @@
           <p class="panel-desc">Fill in the brief and get email copy built to Nomod's standards.</p>
 
           <div class="field">
+            <label for="email-ticket-id">Linear ticket <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <input type="text" id="email-ticket-id" placeholder="Paste the Linear ticket URL or ID, e.g. NOD-123" style="flex:1;" />
+              <button class="btn-secondary" id="email-ticket-fetch">Fetch</button>
+            </div>
+            <p class="field-hint" id="ticket-fetch-status"></p>
+          </div>
+
+          <div class="field" id="ticket-summary-field" style="display:none;">
+            <label for="email-ticket-summary">Ticket context</label>
+            <textarea id="email-ticket-summary" style="min-height:100px;" placeholder="Ticket details will appear here after fetching. You can also paste them manually."></textarea>
+          </div>
+
+          <div class="field">
             <label>Email type</label>
             <div class="email-type-grid">
               <button class="email-type-card" data-type="Notification">
@@ -372,20 +386,6 @@
               <button class="recipient-btn" data-recipient="Customer">Customer</button>
               <button class="recipient-btn" data-recipient="Internal">Internal (Nomod team)</button>
             </div>
-          </div>
-
-          <div class="field">
-            <label for="email-ticket-id">Linear ticket <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
-            <div style="display:flex;gap:8px;align-items:flex-start;">
-              <input type="text" id="email-ticket-id" placeholder="Paste the Linear ticket URL or ID, e.g. NOD-123" style="flex:1;" />
-              <button class="btn-secondary" id="email-ticket-fetch">Fetch</button>
-            </div>
-            <p class="field-hint" id="ticket-fetch-status"></p>
-          </div>
-
-          <div class="field" id="ticket-summary-field" style="display:none;">
-            <label for="email-ticket-summary">Ticket context</label>
-            <textarea id="email-ticket-summary" style="min-height:100px;" placeholder="Ticket details will appear here after fetching. You can also paste them manually."></textarea>
           </div>
 
           <div class="field">
