@@ -167,6 +167,28 @@
     .rules-list, .notes-list { font-size: 13px; color: var(--grey-600); padding-left: 18px; }
     .rules-list li, .notes-list li { margin-bottom: 4px; }
 
+    /* ── Section labels ── */
+    .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--grey-400); margin-bottom: 8px; }
+    .section-desc { font-size: 13px; color: var(--grey-600); line-height: 1.6; margin-bottom: 16px; }
+
+    /* ── Project cards ── */
+    .project-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px; }
+    @media (max-width: 500px) { .project-grid { grid-template-columns: 1fr; } }
+
+    .project-card {
+      border: 1.5px solid var(--grey-200); border-radius: var(--radius);
+      padding: 14px 16px; background: var(--white); text-align: left;
+      text-decoration: none; display: flex; flex-direction: column; gap: 3px;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .project-card:hover { border-color: var(--black); background: var(--grey-100); }
+    .project-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .project-card-icon { font-size: 18px; }
+    .project-badge { font-size: 10px; font-weight: 600; color: var(--grey-400); text-transform: uppercase; letter-spacing: 0.4px; background: var(--grey-100); padding: 2px 7px; border-radius: 20px; }
+    .project-card-label { font-size: 13px; font-weight: 600; color: var(--black); }
+    .project-card-hint { font-size: 11px; color: var(--grey-400); }
+    .project-card-action { font-size: 12px; font-weight: 500; color: var(--black); margin-top: 8px; }
+
     /* ── Email UI components ── */
     .email-type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     @media (max-width: 500px) { .email-type-grid { grid-template-columns: 1fr; } }
@@ -227,22 +249,55 @@
 
   <header>
     <h1>Nomod Content System</h1>
-    <span class="version">v2.0</span>
+    <span class="version">v2.1</span>
   </header>
 
   <main>
 
     <!-- ── Step 1: Surface picker ── -->
     <div class="picker-screen" id="picker-screen">
-      <h2 class="picker-title">What are you working on?</h2>
-      <p class="picker-desc">Pick a content type and we'll show you the right tools, pre-filled with your context.</p>
+      <h2 class="picker-title">Nomod Content System</h2>
+      <p class="picker-desc">Two ways to work — pick what you need.</p>
+
+      <!-- Section 1: Claude Projects -->
+      <div class="section-label">Production writing</div>
+      <p class="section-desc">These skills read your Linear ticket and Figma files automatically and create finished content in Google Drive. They run in Claude Projects — open the right project and paste your URLs.</p>
+
+      <div class="project-grid">
+        <a class="project-card" href="https://claude.ai" target="_blank">
+          <div class="project-card-top">
+            <span class="project-card-icon">✉️</span>
+            <span class="project-badge">Claude Project</span>
+          </div>
+          <span class="project-card-label">Email</span>
+          <span class="project-card-hint">Notification, Announcement, Promotional, Update</span>
+          <span class="project-card-action">Open Nomod Email →</span>
+        </a>
+        <a class="project-card" href="https://claude.ai" target="_blank">
+          <div class="project-card-top">
+            <span class="project-card-icon">📄</span>
+            <span class="project-badge">Claude Project</span>
+          </div>
+          <span class="project-card-label">Nomod Docs</span>
+          <span class="project-card-hint">New feature, feature update, split and improve</span>
+          <span class="project-card-action">Open Nomod Docs →</span>
+        </a>
+        <a class="project-card" href="https://claude.ai" target="_blank">
+          <div class="project-card-top">
+            <span class="project-card-icon">❓</span>
+            <span class="project-badge">Claude Project</span>
+          </div>
+          <span class="project-card-label">FAQ</span>
+          <span class="project-card-hint">Web feature page FAQs and in-app FAQs</span>
+          <span class="project-card-action">Open Nomod FAQ →</span>
+        </a>
+      </div>
+
+      <!-- Section 2: Quick copy tools -->
+      <div class="section-label" style="margin-top:32px;">Quick copy tasks</div>
+      <p class="section-desc">For copy that needs a fast check or a short piece of generated copy. Pick a surface and we'll pre-fill the context.</p>
 
       <div class="surface-grid">
-        <button class="surface-card" data-surface="Email">
-          <span class="surface-card-icon">✉️</span>
-          <span class="surface-card-label">Email</span>
-          <span class="surface-card-hint">Marketing or transactional</span>
-        </button>
         <button class="surface-card" data-surface="Modal">
           <span class="surface-card-icon">🪟</span>
           <span class="surface-card-label">Modal</span>
@@ -273,16 +328,7 @@
           <span class="surface-card-label">Empty state</span>
           <span class="surface-card-hint">Zero data, first-use screens</span>
         </button>
-        <button class="surface-card" data-surface="FAQ">
-          <span class="surface-card-icon">❓</span>
-          <span class="surface-card-label">FAQ</span>
-          <span class="surface-card-hint">In-app or web help content</span>
-        </button>
-        <button class="surface-card" data-surface="Nomod Docs">
-          <span class="surface-card-icon">📄</span>
-          <span class="surface-card-label">Nomod Docs</span>
-          <span class="surface-card-hint">Guides, how-tos, references</span>
-        </button>
+        <button class="surface-card" data-surface="Spec or ticket">
           <span class="surface-card-icon">🗂️</span>
           <span class="surface-card-label">Spec or ticket</span>
           <span class="surface-card-hint">Figma, Jira, Notion, PRD</span>
@@ -373,7 +419,7 @@
 
           <div class="field">
             <label for="docs-notes">Additional notes <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
-            <textarea id="docs-notes" style="min-height:80px;" placeholder="Anything Claude should know — scope, audience, related features, how the old version worked…"></textarea>
+            <textarea id="docs-notes" style="min-height:80px;" placeholder="Optional — anything the brief or Figma file might not cover. Claude reads the ticket, parent ticket, Figma file, and existing Drive docs automatically."></textarea>
           </div>
 
           <button class="btn-primary" id="docs-copy-brief">Copy brief for Claude</button>
@@ -381,10 +427,10 @@
 
           <div style="margin-top:28px;padding:20px;background:var(--grey-100);border-radius:var(--radius);">
             <p style="font-size:13px;font-weight:600;margin-bottom:10px;">How it works</p>
-            <p style="font-size:13px;color:var(--grey-600);line-height:1.8;">1. Fill in the fields above and click <strong>Copy brief for Claude</strong></p>
+            <p style="font-size:13px;color:var(--grey-600);line-height:1.8;">1. Select the docs type, fill in the fields, and click <strong>Copy brief for Claude</strong></p>
             <p style="font-size:13px;color:var(--grey-600);line-height:1.8;">2. Open a new chat at <a href="https://claude.ai" target="_blank" style="color:var(--black);font-weight:500;">claude.ai</a> and paste the brief</p>
-            <p style="font-size:13px;color:var(--grey-600);line-height:1.8;">3. Claude reads the ticket and Figma file, proposes sub-topics as a list</p>
-            <p style="font-size:13px;color:var(--grey-600);line-height:1.8;">4. You confirm which sub-topics you want</p>
+            <p style="font-size:13px;color:var(--grey-600);line-height:1.8;">3. Claude reads the ticket, parent ticket, Figma file, and any existing Drive docs automatically</p>
+            <p style="font-size:13px;color:var(--grey-600);line-height:1.8;">4. Claude proposes sub-article titles — you confirm which ones you want</p>
             <p style="font-size:13px;color:var(--grey-600);line-height:1.8;">5. Claude writes each article and creates the Google Docs directly in Drive</p>
           </div>
         </div>
