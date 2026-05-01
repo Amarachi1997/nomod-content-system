@@ -341,7 +341,25 @@
         <!-- Nomod Docs -->
         <div class="tool-panel" id="tool-docs">
           <h2 class="panel-title">Write docs</h2>
-          <p class="panel-desc">Docs are written directly in Claude — paste your brief below and open a new chat with Claude to get started.</p>
+          <p class="panel-desc">Paste a Linear ticket and Figma file URL. Claude will read both, propose sub-topics, and create the Google Docs directly in Drive once you confirm.</p>
+
+          <div class="field">
+            <label>What type of docs are you writing?</label>
+            <div class="email-type-grid">
+              <button class="email-type-card" data-docs-type="new">
+                <span class="email-type-label">New feature</span>
+                <span class="email-type-hint">No docs exist yet for this feature</span>
+              </button>
+              <button class="email-type-card" data-docs-type="update">
+                <span class="email-type-label">Feature update</span>
+                <span class="email-type-hint">Existing docs need updates for a change</span>
+              </button>
+              <button class="email-type-card" data-docs-type="split">
+                <span class="email-type-label">Split and improve</span>
+                <span class="email-type-hint">Restructure and rewrite existing docs</span>
+              </button>
+            </div>
+          </div>
 
           <div class="field">
             <label for="docs-ticket-url">Linear ticket URL</label>
@@ -355,17 +373,19 @@
 
           <div class="field">
             <label for="docs-notes">Additional notes <span style="color: var(--grey-400); font-weight: 400;">(optional)</span></label>
-            <textarea id="docs-notes" style="min-height:80px;" placeholder="Anything Claude should know — scope, audience, related features…"></textarea>
+            <textarea id="docs-notes" style="min-height:80px;" placeholder="Anything Claude should know — scope, audience, related features, how the old version worked…"></textarea>
           </div>
 
-          <button class="btn-primary" id="docs-copy-brief">Copy brief</button>
+          <button class="btn-primary" id="docs-copy-brief">Copy brief for Claude</button>
           <p class="field-hint" id="docs-copy-status" style="margin-top:10px;"></p>
 
           <div style="margin-top:28px;padding:20px;background:var(--grey-100);border-radius:var(--radius);">
-            <p style="font-size:13px;font-weight:600;margin-bottom:8px;">How it works</p>
-            <p style="font-size:13px;color:var(--grey-600);line-height:1.6;">1. Fill in the fields above and click <strong>Copy brief</strong></p>
-            <p style="font-size:13px;color:var(--grey-600);line-height:1.6;">2. Open a new chat with Claude at <a href="https://claude.ai" target="_blank" style="color:var(--black);">claude.ai</a></p>
-            <p style="font-size:13px;color:var(--grey-600);line-height:1.6;">3. Paste the brief — Claude will read the ticket, read the Figma file, propose the doc structure, and create the Google Docs directly in Drive once you confirm</p>
+            <p style="font-size:13px;font-weight:600;margin-bottom:10px;">How it works</p>
+            <p style="font-size:13px;color:var(--grey-600);line-height:1.8;">1. Fill in the fields above and click <strong>Copy brief for Claude</strong></p>
+            <p style="font-size:13px;color:var(--grey-600);line-height:1.8;">2. Open a new chat at <a href="https://claude.ai" target="_blank" style="color:var(--black);font-weight:500;">claude.ai</a> and paste the brief</p>
+            <p style="font-size:13px;color:var(--grey-600);line-height:1.8;">3. Claude reads the ticket and Figma file, proposes sub-topics as a list</p>
+            <p style="font-size:13px;color:var(--grey-600);line-height:1.8;">4. You confirm which sub-topics you want</p>
+            <p style="font-size:13px;color:var(--grey-600);line-height:1.8;">5. Claude writes each article and creates the Google Docs directly in Drive</p>
           </div>
         </div>
 
@@ -1017,7 +1037,17 @@
         </div>`;
     }
 
-    // ── Nomod Docs — copy brief ───────────────────────────
+    // ── Nomod Docs — type selection and copy brief ────────
+    let docsType = null;
+
+    document.querySelectorAll('[data-docs-type]').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('[data-docs-type]').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        docsType = card.dataset.docsType;
+      });
+    });
+
     document.getElementById('docs-copy-brief').addEventListener('click', () => {
       const ticketUrl = document.getElementById('docs-ticket-url').value.trim();
       const figmaUrl  = document.getElementById('docs-figma-url').value.trim();
@@ -1030,8 +1060,15 @@
         return;
       }
 
+      const docsTypeLabel = {
+        'new': 'New feature — no docs exist yet for this feature',
+        'update': 'Feature update — existing docs need updates for a change',
+        'split': 'Split and improve — restructure and rewrite existing docs'
+      }[docsType] || 'Not specified';
+
       const brief = [
-        `I need you to write Nomod Docs for the following. Please follow the two-stage process: first propose the sub-article structure, then draft the full content and create the Google Docs in Drive once I confirm.`,
+        `I need you to write Nomod Docs. Please follow the two-stage process from your docs-writer skill: first read the ticket and Figma file, propose the sub-article structure, and wait for my confirmation before drafting content or creating anything in Drive.`,
+        `Docs type: ${docsTypeLabel}`,
         ticketUrl ? `Linear ticket: ${ticketUrl}` : null,
         figmaUrl  ? `Figma file: ${figmaUrl}` : null,
         notes     ? `Additional context: ${notes}` : null,
@@ -1041,7 +1078,7 @@
         status.textContent = 'Brief copied. Paste it into a new Claude chat to get started.';
         status.style.color = '#1e8449';
       }).catch(() => {
-        status.textContent = 'Could not copy automatically. Select the text below and copy it manually.';
+        status.textContent = 'Could not copy automatically. Select and copy the text above manually.';
         status.style.color = '#c0392b';
       });
     });
