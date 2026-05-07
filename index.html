@@ -232,6 +232,22 @@
     .checklist-item.pass { background: #e8f8ee; color: #1e8449; }
     .checklist-item.fail { background: #fde8e8; color: #c0392b; }
 
+    /* ── Push buttons ── */
+    .push-row { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .btn-push {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 16px; border-radius: var(--radius); font-size: 13px;
+      font-weight: 500; cursor: pointer; font-family: var(--font);
+      border: 1.5px solid var(--grey-200); background: var(--white);
+      color: var(--black); transition: border-color 0.15s, background 0.15s;
+    }
+    .btn-push:hover { border-color: var(--black); background: var(--grey-100); }
+    .btn-push:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-push.success { border-color: #1e8449; color: #1e8449; background: #e8f8ee; }
+    .btn-push.error { border-color: #c0392b; color: #c0392b; background: #fde8e8; }
+    .push-status { font-size: 12px; color: var(--grey-600); margin-top: 8px; }
+    .push-status a { color: var(--black); font-weight: 500; }
+
     .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -542,6 +558,11 @@
           <hr class="output-divider" />
           <div class="output-label">Generated copy</div>
           <div class="output-content" id="gen-result"></div>
+          <div class="push-row" id="gen-push-row" style="display:none;">
+            <button class="btn-push" id="gen-drive-btn">📄 Save to Drive</button>
+            <button class="btn-push" id="gen-figma-btn">🎨 Update Figma</button>
+          </div>
+          <p class="push-status" id="gen-push-status"></p>
         </div>
       </div>
 
@@ -575,6 +596,10 @@
           <hr class="output-divider" />
           <div class="output-label">Copy review report</div>
           <div class="output-content" id="rev-result"></div>
+          <div class="push-row" id="rev-push-row" style="display:none;">
+            <button class="btn-push" id="rev-figma-btn">🎨 Update Figma with clean version</button>
+          </div>
+          <p class="push-status" id="rev-push-status"></p>
         </div>
       </div>
 
@@ -755,6 +780,7 @@
         const data = await res.json();
         result.innerHTML = formatMicroOutput(data);
         output.classList.add('visible');
+        showGenPushButtons(data.components || data, null);
       } catch (err) {
         result.textContent = 'Something went wrong. Please try again.';
         output.classList.add('visible');
@@ -780,6 +806,7 @@
         const data = await res.json();
         result.innerHTML = formatCopyReview(data);
         output.classList.add('visible');
+        if (data.cleanVersion) showRevPushButtons(data.cleanVersion, null);
       } catch (err) {
         result.textContent = 'Something went wrong. Please try again.';
         output.classList.add('visible');
@@ -1127,6 +1154,141 @@
         status.textContent = 'Could not copy automatically. Select and copy the text above manually.';
         status.style.color = '#c0392b';
       });
+    });
+
+    // ── Push buttons ──────────────────────────────────────
+
+    // State for push operations
+    let lastGeneratedContent = null;
+    let lastReviewCleanVersion = null;
+    let lastFigmaUrl = null;
+
+    // Show push buttons after generate copy succeeds
+    function showGenPushButtons(content, figmaUrl) {
+      lastGeneratedContent = content;
+      lastFigmaUrl = figmaUrl || document.getElementById('gen-figma-url')?.value?.trim() || null;
+      const row = document.getElementById('gen-push-row');
+      if (row) row.style.display = 'flex';
+    }
+
+    // Show figma push button after review copy succeeds
+    function showRevPushButtons(cleanVersion, figmaUrl) {
+      lastReviewCleanVersion = cleanVersion;
+      lastFigmaUrl = figmaUrl || document.getElementById('rev-surface')?.value?.trim() || null;
+      const row = document.getElementById('rev-push-row');
+      if (row) row.style.display = 'flex';
+    }
+
+    // Generic Drive push
+    async function pushToDrive(payload, statusEl, btn) {
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      statusEl.textContent = '';
+
+      try {
+        const res = await fetch('/api/drive-push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Drive push failed');
+        }
+
+        btn.classList.add('success');
+        btn.textContent = '✓ Saved to Drive';
+        statusEl.innerHTML = `Saved as <a href="${data.url}" target="_blank">${data.title}</a>`;
+      } catch (err) {
+        btn.classList.add('error');
+        btn.textContent = '✗ Save failed';
+        statusEl.textContent = err.message;
+        btn.disabled = false;
+      }
+    }
+
+    // Generic Figma push
+    async function pushToFigma(fileKey, updates, statusEl, btn) {
+      if (!fileKey) {
+        statusEl.textContent = 'No Figma file URL provided. Add a Figma URL in the surface field to enable Figma updates.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Finding nodes…';
+      statusEl.textContent = '';
+
+      try {
+        const res = await fetch('/api/figma-push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileKey, updates })
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Figma push failed');
+
+        if (data.resolved === 0) {
+          btn.classList.add('error');
+          btn.textContent = '✗ No nodes found';
+          statusEl.textContent = 'Could not find matching text nodes in the Figma file. Check that the Figma URL is correct and the text exists in the file.';
+        } else {
+          btn.classList.add('success');
+          btn.textContent = `✓ ${data.resolved} node${data.resolved > 1 ? 's' : ''} found`;
+          const links = data.results
+            .filter(r => r.status === 'ready')
+            .map(r => `<a href="${r.figmaUrl}" target="_blank">${r.originalText.substring(0, 40)}…</a>`)
+            .join('<br>');
+          statusEl.innerHTML = `${data.note}<br>${links}`;
+        }
+      } catch (err) {
+        btn.classList.add('error');
+        btn.textContent = '✗ Update failed';
+        statusEl.textContent = err.message;
+        btn.disabled = false;
+      }
+    }
+
+    // Extract Figma file key from a URL
+    function extractFigmaFileKey(url) {
+      if (!url) return null;
+      const match = url.match(/figma\.com\/(?:design|file)\/([a-zA-Z0-9]+)/);
+      return match ? match[1] : null;
+    }
+
+    // Generate copy — Drive push
+    document.getElementById('gen-drive-btn')?.addEventListener('click', async () => {
+      if (!lastGeneratedContent) return;
+      const surface = document.getElementById('gen-surface')?.value?.trim() || 'Content';
+      const flow = document.getElementById('gen-flow')?.value?.trim() || '';
+      await pushToDrive({
+        type: 'doc',
+        feature: surface,
+        title: flow || surface,
+        content: lastGeneratedContent,
+        isNew: true
+      }, document.getElementById('gen-push-status'), document.getElementById('gen-drive-btn'));
+    });
+
+    // Generate copy — Figma push
+    document.getElementById('gen-figma-btn')?.addEventListener('click', async () => {
+      if (!lastGeneratedContent) return;
+      const figmaUrl = document.getElementById('gen-surface')?.value?.trim();
+      const fileKey = extractFigmaFileKey(figmaUrl);
+      const updates = Array.isArray(lastGeneratedContent)
+        ? lastGeneratedContent.filter(b => b.style === 'NORMAL_TEXT').map(b => ({ search: b.text.substring(0, 50), text: b.text }))
+        : [{ search: String(lastGeneratedContent).substring(0, 50), text: String(lastGeneratedContent) }];
+      await pushToFigma(fileKey, updates, document.getElementById('gen-push-status'), document.getElementById('gen-figma-btn'));
+    });
+
+    // Review copy — Figma push (clean version only)
+    document.getElementById('rev-figma-btn')?.addEventListener('click', async () => {
+      if (!lastReviewCleanVersion) return;
+      const figmaUrl = document.getElementById('rev-surface')?.value?.trim();
+      const fileKey = extractFigmaFileKey(figmaUrl);
+      const updates = [{ search: lastReviewCleanVersion.substring(0, 50), text: lastReviewCleanVersion }];
+      await pushToFigma(fileKey, updates, document.getElementById('rev-push-status'), document.getElementById('rev-figma-btn'));
     });
 
     // ── Formatters ────────────────────────────────────────

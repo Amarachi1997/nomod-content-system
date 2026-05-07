@@ -6,6 +6,8 @@
     "api/glossary-check.js": { "maxDuration": 300 },
     "api/email-writer.js": { "maxDuration": 300 },
     "api/linear-fetch.js": { "maxDuration": 30 },
-    "api/infer-email-type.js": { "maxDuration": 30 }
+    "api/infer-email-type.js": { "maxDuration": 30 },
+    "api/drive-push.js": { "maxDuration": 60 },
+    "api/figma-push.js": { "maxDuration": 30 }
   }
 }
